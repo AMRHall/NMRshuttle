@@ -1,0 +1,114 @@
+// NMR shuttle motor driver v2.0 
+// A. Hall (a.m.r.hall@soton.ac.uk)
+// Jan-2019
+//
+// REMEMBER TO PRESS RUN AFTER UPLOADING THE PROGRAMM!
+//
+// SAP is for set axis parameter.
+// Note that our motor has 200 full steps per rotation
+// 1 full step = 256 microsteps
+// 1 rotation is approximately 34 cm (51200 steps)
+
+
+input0 = 0		// configure motor input as UserVariable0
+dist = 1			// configure motion distance as UserVariable1
+position = 8		// configure motor position as UserVariable8
+maxheight = 10 	// configure maximum height as UserVariable10
+errflag = 9		// configure error flag as UserVariable9
+
+SGP errflag, 2, 0    	//clear error flag
+
+SAP 5, 0, 1099	// max acceleration (8...2047) 1099 is approximately 2000 steps/second^2 (pps^2)
+SAP 4, 0, 2047	// max speed (0...2047). Max speed approx. 42 cm/second.
+SAP 2, 0, 1677	// target speed (0...2047) 1677 is approximately 1 revolution/second (200 steps/second (pps)). Max speed approx. 42 cm/second.
+SIO 0, 2, 0		// initialise output0 (0 = sample in position, 1 = sample moving)
+SAP 6, 0, 80      //motor run current
+SAP 7, 0, 16      //motor standby current
+SAP 173, 0, 1    //stallGuard2 filter setting
+SAP 174, 0, 5    //stallGuard2 threshold value
+SAP 181, 0, 1000    //stop on stall value
+
+
+//Set motor motion parameters
+SGP dist, 2, 0	// set initial value for upward motion to zero
+SGP position, 2, 0 //set initial value for sample position to 'down'
+
+// Set distance for motor to move using command 'SGP 1,2,value' in direct control mode. 
+// This may be controlled directly from Topspin using the NMRshuttle python program.
+
+
+// configure interrupt
+VECT 39, Inp0change	//Set input0 as interupt vector 1
+SGP 39, 3, 2 			//(1 =low-high)
+
+VECT 40, Inp1change	//Set input1 as interupt vector 2
+SGP 40, 3, 2 			//(1 =low-high)
+EI 40				//Enable input1
+
+EI 255				//Enable global interupts
+
+GIO input0, 0	    		//read input0	
+
+
+loop:
+   WAIT TICKS, 0, 100
+   GIO 10, 0   		//read SHUTDOWN.
+   JC ZE, ShutdownError		//If SHUTDOWN = True (triggered by light gate); then go to error
+   GAP 207, 0    //get Stall error flags
+   JC NZ, Stall
+   JA loop
+
+
+Inp0change:		//Motor move down
+   DI 39					//Disable Interupt0 (prevents motor receiving signal twice)  
+   SIO 0, 2, 1					//Set Output0 low (sample moving)
+   SGP position, 2, 2			//Set sample position to 'in motion'
+   GAP 0, 0						//Get current position
+   CALCX LOAD					//Save current position to accumulator
+   GGP dist, 2					//Get distance to move
+   CALCX ADD					//Calculate position motor needs to move to and save to accumulator
+   AAP 0, 0						//Set target position to accumulator value
+   WAIT POS, 0, 1000  			//Wait until motor in position. Timeout if not reached within 10 seconds
+   SGP position, 2, 0			//Set sample position to 'down'
+   SIO 0, 2, 0					//Set Output0 high (sample stationary)
+   EI 40				//Enable Interupt0
+   RETI							//Return to loop
+
+Inp1change:		//Motor move up
+   DI 40					//Disable Interupt1 (prevents motor receiving signal twice)
+   SIO 0, 2, 1					//Set Output0 low (sample moving)
+   SGP position, 2, 2			//Set sample position to 'in motion'
+   GAP 0, 0						//Get current position
+   CALCX LOAD					//Save current position to accumulator
+   GGP dist, 2					//Get distance to move
+   CALCX SUB					//Calculate position motor needs to move to and save to accumulator
+   CALC MUL, -1					//Calculate position motor needs to move to and save to accumulator
+   AAP 0, 0						//Set target position to accumulator value
+   WAIT POS, 0, 1000			//Wait until motor in position. Timeout if not reached within 10 seconds
+   SGP position, 2, 1			//Set sample position to 'up'
+   SIO 0, 2, 0					//Set Output0 high (sample stationary)
+   EI 39				//Enable Interupt0
+   RETI							//Return to loop
+
+ShutdownError: 
+   DI 39			//Deactivate trigger input 0
+   DI 40			//Deactivate trigger input 1
+   SGP errflag, 2, 1    //set error flag
+   JA Error
+
+Stall:
+   DI 39			//Deactivate trigger input 0
+   DI 40			//Deactivate trigger input 1
+   SGP errflag, 2, 2    //set error flag
+   JA Error
+
+Error:
+   WAIT TICKS, 0, 100
+   GGP errflag, 2	// Check if error has been cleared by external script
+   JC ZE, Reset		// If so reset motor
+   JA Error	// Else loop
+
+Reset:
+   CLE ALL			//Clear all error flags
+   EI 40				//Enable trigger input 1
+   JA loop			//Return to loop

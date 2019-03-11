@@ -1,0 +1,76 @@
+// NMR shuttle motor driver v2.0 
+// A. Hall (a.m.r.hall@soton.ac.uk)
+// Nov-2018 
+//
+// REMEMBER TO PRESS RUN AFTER UPLOADING THE PROGRAMM!
+//
+// SAP is for set axis parameter.
+// Note that our motor has 200 full steps per rotation
+// 1 full step = 256 microsteps
+// 1 rotation is approximately 34 cm (51200 steps)
+
+
+input0 = 0		//configure motor input as UserVariable0
+dist = 1			//configure motion distance as UserVariable1
+position = 8		//configure motor position as UserVariable8
+
+SAP 5, 0, 1099	// max acceleration (8...2047) 1099 is approximately 2000 steps/second^2 (pps^2)
+SAP 4, 0, 2047	// max speed (0...2047). Max speed approx. 42 cm/second.
+SAP 2, 0, 1677	// target speed (0...2047) 1677 is approximately 1 revolution/second (200 steps/second (pps)). Max speed approx. 42 cm/second.
+SAP 7, 0, 24		// set standby current (stops motor turning when not moving)
+SIO 0, 2, 0		// initialise output0 (0 = sample in position, 1 = sample moving)
+
+
+//Set motor motion parameters
+SGP dist, 2, 0	// set initial value for upward motion to zero
+SGP position, 2, 0
+
+// Set distance for motor to move using command 'SGP 1,2,value' in direct control mode. 
+// This may be controlled directly from Topspin using the NMRshuttle python program.
+
+
+// configure interrupt
+VECT 39, Inp0change
+SGP 39, 3, 2 //(1 =low-high)
+EI 39
+
+VECT 40, Inp1change
+SGP 40, 3, 2
+EI 40
+
+EI 255
+
+GIO input0, 0
+
+
+loop:
+   WAIT TICKS, 0, 100
+   JA loop
+
+
+Inp0change:		//Motor move up
+   SIO 0, 2, 1
+   SGP position, 2, 2
+   GAP 0, 0
+   CALCX LOAD
+   GGP dist, 2
+   CALCX ADD
+   AAP 0, 0
+   WAIT POS, 0, 0  
+   SGP position, 2, 0
+   SIO 0, 2, 0
+   RETI
+
+Inp1change:		//Motor move down
+   SIO 0, 2, 1
+   SGP position, 2, 2
+   GAP 0, 0
+   CALCX LOAD
+   GGP dist, 2
+   CALCX SUB
+   CALC MUL, -1
+   AAP 0, 0
+   WAIT POS, 0, 0
+   SIO 0, 2, 0
+   SGP position, 2, 1
+   RETI
