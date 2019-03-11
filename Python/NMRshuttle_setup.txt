@@ -1,0 +1,24 @@
+//Serial port name for motor
+serial: COM5
+
+//Maximum allowed height (cm)
+MaxHeight: 100
+
+//Magnetic field strength at magnet core (mT)
+B0: 9396.658
+
+//Fitting parameters for NMR field map [equation of the form BSample = B0/(1+(x/b)^a)]
+a: 5.99796284
+b: 22.6300087
+
+//Circumference of motor wheel (cm)
+Circ: 25
+
+//Number of steps for full revolution of motor
+NStep: 51200
+
+//Target motor speed (0...2047)
+speed: 1677
+
+//Motor acceleration (0...2047)
+accel: 2047
