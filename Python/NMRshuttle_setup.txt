@@ -1,5 +1,5 @@
 //Serial port name for motor
-serial: COM5
+serial: /dev/ttyACM0
 
 //Maximum allowed height (cm)
 MaxHeight: 100
@@ -27,9 +27,6 @@ accel: 1099
 
 //Maximum motor speed (0...2047). Max speed approx. 42 cm/second.
 maxspeed: 2047
-
-//Maximum acceleration (0...2047)
-maxaccel: 1099
 
 
 
