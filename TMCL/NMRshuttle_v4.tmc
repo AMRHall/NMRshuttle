@@ -102,5 +102,6 @@ Error:
 
 Reset:
    CLE ALL			//Clear all error flags
+   SGP dist, 2, 0	// set initial value for upward motion to zero
    EI 40				//Enable trigger input 1
    JA loop			//Return to loop
