@@ -72,31 +72,31 @@ for x in VBlist:
   module.setUserVariable(1,steps)
   
   # Check position of sample and wait until finished
-	n = 0
-	up = 'n'
-	while n < NS:	
-		# Check for errors in motor
-		error = module.userVariable(9)
-		if error == 1:		#Shutdown error from light gate
-			print("\n\nEmergency stop detected. Aborting acquisition.")
-	        	errflag += 1
-	        	break
-		elif error == 2:       #Stall detected
-	        	print("\n\nStall detected. Aborting acquisition.")
-	        	errflag += 1
-	        	break
-			
-		#Check sample position
-		position = module.userVariable(8)
-			if up == 'n' and position == 1:
-				up = 'y'
-				print("Sample up")
-			if up == 'y' and position == 0:
-	        		up = 'n'
-	        		n += 1
-	        		print("Sample down")
-	        		print("Completed transient", n, "of", NS, "at magnetic field strength of", BSample, "mT")
-			
+n = 0
+up = 'n'
+while n < NS:	
+	# Check for errors in motor
+	error = module.userVariable(9)
+	if error == 1:		#Shutdown error from light gate
+		print("\n\nEmergency stop detected. Aborting acquisition.")
+        	errflag += 1
+        	break
+	elif error == 2:       #Stall detected
+        	print("\n\nStall detected. Aborting acquisition.")
+        	errflag += 1
+        	break
+	
+	#Check sample position
+	position = module.userVariable(8)
+		if up == 'n' and position == 1:
+			up = 'y'
+			print("Sample up")
+		if up == 'y' and position == 0:
+        		up = 'n'
+        		n += 1
+        		print("Sample down")
+        		print("Completed transient", n, "of", NS, "at magnetic field strength of", BSample, "mT")
+		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
 module.setUserVariable(1,0)
