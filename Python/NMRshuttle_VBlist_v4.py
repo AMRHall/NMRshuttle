@@ -69,7 +69,7 @@ for x in VBlist:
   steps = int((dist*NStep)/Circ)
   print("Number of steps =", steps, '\n')
   
-  module.setUserVariable(9,steps)
+  module.setUserVariable(1,steps)
   
   # Check position of sample and wait until finished
 	n = 0
@@ -99,7 +99,7 @@ for x in VBlist:
 			
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
-module.setUserVariable(9,0)
+module.setUserVariable(1,0)
 
 # Print competion message
 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
