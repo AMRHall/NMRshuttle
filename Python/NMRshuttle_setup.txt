@@ -17,8 +17,25 @@ Circ: 25
 //Number of steps for full revolution of motor
 NStep: 51200
 
+
+
 //Target motor speed (0...2047)
 speed: 1677
 
-//Motor acceleration (0...2047)
-accel: 2047
+//Motor acceleration (0...2047) 1099 is approximately 2000 steps/second^2 (pps^2)
+accel: 1099
+
+//Maximum motor speed (0...2047). Max speed approx. 42 cm/second.
+maxspeed: 2047
+
+//Maximum acceleration (0...2047)
+maxaccel: 1099
+
+
+
+//Stall guard settings
+motorRunCurrent: 80
+motorStandbyCurrent: 16
+stallguard2Filter: 1
+stallguard2Threshold: 5
+stopOnStall: 1000
