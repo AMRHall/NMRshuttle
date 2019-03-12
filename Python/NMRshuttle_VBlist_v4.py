@@ -16,8 +16,6 @@ b = float((setup.split('b: ')[1].split('\n')[0]))                     # Magnetic
 Circ = float((setup.split('Circ: ')[1].split('\n')[0]))		         # Circumference of spindle wheel (cm)
 NStep = int((setup.split('NStep: ')[1].split('\n')[0]))       # Number of steps for one full revolution of motor
 speed = int((setup.split('speed: ')[1].split('\n')[0]))         # Target motor speed
-acceleration = int((setup.split('accel: ')[1].split('\n')[0]))        # Target motor acceleration
-
 
 PyTrinamic.showInfo()
 PyTrinamic.showAvailableComPorts()
@@ -30,15 +28,17 @@ module = TMCM_1160(myInterface)
 
 # Motor settings
 module.setMaxVelocity(int((setup.split('maxspeed: ')[1].split('\n')[0])))
-module.setMaxAcceleration(int((setup.split('maxaccel: ')[1].split('\n')[0])))
+module.setMaxAcceleration(int((setup.split('accel: ')[1].split('\n')[0])))
 module.motorRunCurrent(int((setup.split('motorRunCurrent: ')[1].split('\n')[0])))
 module.motorStandbyCurrent(int((setup.split('motorStandbyCurrent: ')[1].split('\n')[0])))
 module.stallguard2Filter(int((setup.split('stallguard2Filter: ')[1].split('\n')[0])))
 module.stallguard2Threshold(int((setup.split('stallguard2Threshold: ')[1].split('\n')[0])))
 module.stopOnStall(int((setup.split('stopOnStall: ')[1].split('\n')[0])))
 module.setTargetSpeed(speed)
-module.setAcceleration(acceleration)
 
+# Reset all error flags
+errflag = 0
+module.setUserVariable(9,0)
 
 # Open file with list of magnetic field strength
 VBlist = open("VBlist.txt","r").read().splitlines()
@@ -47,47 +47,47 @@ VBlist = open("VBlist.txt","r").read().splitlines()
 NS = int(input("Number of transients at each magnetic field strength: "))
 
 for x in VBlist:
-  # Check for error flags
-  if errflag != 0:
-       break
-    
+	# Check for error flags
+	if errflag != 0:
+		break
+
 	# Fetch desired magnetic field strength (mT)
-  BSample = float(x)
-  print("\nMagnetic field strength =", BSample, "mT")
+	BSample = float(x)
+	print("\nMagnetic field strength =", BSample, "mT")
     
-  # Calculate sample position needed to achieve this field strength
-  dist = float(b*(((B0/BSample)-1)**(1/a)))
-  print("Height = ", dist, " cm")
+	# Calculate sample position needed to achieve this field strength
+	dist = float(b*(((B0/BSample)-1)**(1/a)))
+	print("Height = ", dist, " cm")
     
-  # Error if sample position too high or too low
-  if (dist < 0)  or (dist > MaxHeight):
-       print('Field strength out of range!')
-       errflag += 1
-       break
+	# Error if sample position too high or too low
+	if (dist < 0)  or (dist > MaxHeight):
+		print('Field strength out of range!')
+		errflag += 1
+		break
     
-  # Calculate number of steps
-  steps = int((dist*NStep)/Circ)
-  print("Number of steps =", steps, '\n')
+	# Calculate number of steps
+	steps = int((dist*NStep)/Circ)
+	print("Number of steps =", steps, '\n')
+
+	module.setUserVariable(1,steps)
   
-  module.setUserVariable(1,steps)
-  
-  # Check position of sample and wait until finished
-n = 0
-up = 'n'
-while n < NS:	
-	# Check for errors in motor
-	error = module.userVariable(9)
-	if error == 1:		#Shutdown error from light gate
-		print("\n\nEmergency stop detected. Aborting acquisition.")
-        	errflag += 1
-        	break
-	elif error == 2:       #Stall detected
-        	print("\n\nStall detected. Aborting acquisition.")
-        	errflag += 1
-        	break
+	# Check position of sample and wait until finished
+	n = 0
+	up = 'n'
+	while n < NS:	
+		# Check for errors in motor
+		error = module.userVariable(9)
+		if error == 1:		#Shutdown error from light gate
+			print("\n\nEmergency stop detected. Aborting acquisition.")
+			errflag += 1
+			break
+		elif error == 2:       #Stall detected
+			print("\n\nStall detected. Aborting acquisition.")
+			errflag += 1
+			break
 	
-	#Check sample position
-	position = module.userVariable(8)
+		#Check sample position
+		position = module.userVariable(8)
 		if up == 'n' and position == 1:
 			up = 'y'
 			print("Sample up")
@@ -114,5 +114,5 @@ if exit =="Y" or exit =="y":
 	print("Exiting program...")
 	time.sleep(1)
 
-	# Close serial port
-	ser.close()
+# Close serial port
+myInterface.close()
