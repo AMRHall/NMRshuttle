@@ -18,15 +18,8 @@ errflag = 9		// configure error flag as UserVariable9
 
 SGP errflag, 2, 0    	//clear error flag
 
-SAP 5, 0, 1099	// max acceleration (8...2047) 1099 is approximately 2000 steps/second^2 (pps^2)
-SAP 4, 0, 2047	// max speed (0...2047). Max speed approx. 42 cm/second.
-SAP 2, 0, 1677	// target speed (0...2047) 1677 is approximately 1 revolution/second (200 steps/second (pps)). Max speed approx. 42 cm/second.
+
 SIO 0, 2, 0		// initialise output0 (0 = sample in position, 1 = sample moving)
-SAP 6, 0, 80      //motor run current
-SAP 7, 0, 16      //motor standby current
-SAP 173, 0, 1    //stallGuard2 filter setting
-SAP 174, 0, 5    //stallGuard2 threshold value
-SAP 181, 0, 1000    //stop on stall value
 
 
 //Set motor motion parameters
