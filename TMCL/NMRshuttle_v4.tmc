@@ -13,7 +13,6 @@
 input0 = 0		// configure motor input as UserVariable0
 dist = 1			// configure motion distance as UserVariable1
 position = 8		// configure motor position as UserVariable8
-maxheight = 10 	// configure maximum height as UserVariable10
 errflag = 9		// configure error flag as UserVariable9
 
 SGP errflag, 2, 0    	//clear error flag
