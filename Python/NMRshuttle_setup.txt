@@ -28,6 +28,9 @@ accel: 1099
 //Maximum motor speed (0...2047). Max speed approx. 42 cm/second.
 maxspeed: 2047
 
+//Velocity ramp equation
+ramp: 100 + 5 * steps
+
 
 
 //Stall guard settings for standard glass tube
