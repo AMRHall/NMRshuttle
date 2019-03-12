@@ -16,7 +16,7 @@ b = float((setup.split('b: ')[1].split('\n')[0]))                     # Magnetic
 Circ = float((setup.split('Circ: ')[1].split('\n')[0]))		         # Circumference of spindle wheel (cm)
 NStep = int((setup.split('NStep: ')[1].split('\n')[0]))       # Number of steps for one full revolution of motor
 speed = int((setup.split('speed: ')[1].split('\n')[0]))         # Target motor speed
-acceleration = int((setup.split('accel: ')[1].split('\n')[0]))        # Motor acceleration
+acceleration = int((setup.split('accel: ')[1].split('\n')[0]))        # Target motor acceleration
 
 
 PyTrinamic.showInfo()
@@ -29,9 +29,15 @@ myInterface = serial_tmcl_interface(port)
 module = TMCM_1160(myInterface)
 
 # Motor settings
+module.setMaxVelocity(int((setup.split('maxspeed: ')[1].split('\n')[0])))
+module.setMaxAcceleration(int((setup.split('maxaccel: ')[1].split('\n')[0])))
+module.motorRunCurrent(int((setup.split('motorRunCurrent: ')[1].split('\n')[0])))
+module.motorStandbyCurrent(int((setup.split('motorStandbyCurrent: ')[1].split('\n')[0])))
+module.stallguard2Filter(int((setup.split('stallguard2Filter: ')[1].split('\n')[0])))
+module.stallguard2Threshold(int((setup.split('stallguard2Threshold: ')[1].split('\n')[0])))
+module.stopOnStall(int((setup.split('stopOnStall: ')[1].split('\n')[0])))
 module.setTargetSpeed(speed)
 module.setAcceleration(acceleration)
-
 
 
 # Open file with list of magnetic field strength
@@ -65,4 +71,48 @@ for x in VBlist:
   
   module.setUserVariable(9,steps)
   
-  
+  # Check position of sample and wait until finished
+	n = 0
+	up = 'n'
+	while n < NS:	
+		# Check for errors in motor
+		error = module.userVariable(9)
+		if error == 1:		#Shutdown error from light gate
+			print("\n\nEmergency stop detected. Aborting acquisition.")
+	        	errflag += 1
+	        	break
+		elif error == 2:       #Stall detected
+	        	print("\n\nStall detected. Aborting acquisition.")
+	        	errflag += 1
+	        	break
+			
+		#Check sample position
+		position = module.userVariable(8)
+			if up == 'n' and position == 1:
+				up = 'y'
+				print("Sample up")
+			if up == 'y' and position == 0:
+	        		up = 'n'
+	        		n += 1
+	        		print("Sample down")
+	        		print("Completed transient", n, "of", NS, "at magnetic field strength of", BSample, "mT")
+			
+# Once sequence is complete for all magnetic field strengths:
+# Set motor distance back to zero for safety
+module.setUserVariable(9,0)
+
+# Print competion message
+timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+if errflag ==0:
+	print("\nSequence successfully completed at", timestamp)
+else:
+	print("\nSequence aborted with", errflag, "error(s) at", timestamp)
+
+# Exit program
+exit = input("Exit program (Y/N):")
+if exit =="Y" or exit =="y":
+	print("Exiting program...")
+	time.sleep(1)
+
+	# Close serial port
+	ser.close()
