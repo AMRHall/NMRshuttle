@@ -106,18 +106,22 @@ for x in VBlist:
 		position = module.userVariable(8)
 		if up == 'n' and position == 1:
 			up = 'y'
-			print("Sample up")
-			startposition = module.actualPosition()
+			print("Sample up in ", elapsed_time, " seconds.")
+			start_position = module.actualPosition()
 		if up == 'y' and position == 0:
 			up = 'n'
 			n += 1
-			print("Sample down")
+			print("Sample down in ", elapsed_time, " seconds.")
 			print("Completed transient", n, "of", NS, "at magnetic field strength of", BSample, "mT")
-			startposition = module.actualPosition()
+			start_position = module.actualPosition()
+		start_time = time.time()
 		while position == 2 and mode == 2:
-			currposition = ((module.actualPosition() - startposition)*Circ)/NStep
+			curr_position = ((module.actualPosition() - start_position)*Circ)/NStep
 			speed = eval(ramp)
 			module.setTargetSpeed(speed)
+			elapsed_time = start_time - time.time()
+		while position == 2 and mode != 2:
+			elapsed_time = start_time - time.time()
 		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
