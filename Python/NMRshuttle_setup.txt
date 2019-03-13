@@ -29,7 +29,7 @@ accel: 1099
 maxspeed: 2047
 
 //Velocity ramp equation
-ramp: 100 + 5 * steps
+ramp: 100 + 5 * currposition
 
 
 
