@@ -34,17 +34,17 @@ ramp: 100 + 5 * currposition
 
 
 //Stall guard settings for standard glass tube
-1_motorRunCurrent: 80
+1_motorRunCurrent: 64
 1_motorStandbyCurrent: 16
 1_stallguard2Filter: 1
-1_stallguard2Threshold: 5
+1_stallguard2Threshold: 4
 1_stopOnStall: 1000
 
 //Stall guard settings for 5mm high pressure tube
-2_motorRunCurrent: 80
+2_motorRunCurrent: 64
 2_motorStandbyCurrent: 16
 2_stallguard2Filter: 1
-2_stallguard2Threshold: 5
+2_stallguard2Threshold: 4
 2_stopOnStall: 1000
 
 //Stall guard settings for 10mm high pressure tube
