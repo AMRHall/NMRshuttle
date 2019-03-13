@@ -16,6 +16,7 @@ b = float((setup.split('b: ')[1].split('\n')[0]))                     # Magnetic
 Circ = float((setup.split('Circ: ')[1].split('\n')[0]))		         # Circumference of spindle wheel (cm)
 NStep = int((setup.split('NStep: ')[1].split('\n')[0]))       # Number of steps for one full revolution of motor
 speed = int((setup.split('speed: ')[1].split('\n')[0]))         # Target motor speed
+ramp = int((setup.split('ramp: ')[1].split('\n')[0]))         # Equation for velocity ramp
 
 PyTrinamic.showInfo()
 PyTrinamic.showAvailableComPorts()
@@ -106,13 +107,17 @@ for x in VBlist:
 		if up == 'n' and position == 1:
 			up = 'y'
 			print("Sample up")
+			startposition = module.actualPosition()
 		if up == 'y' and position == 0:
-      up = 'n'
-      n += 1
-      print("Sample down")
-      print("Completed transient", n, "of", NS, "at magnetic field strength of", BSample, "mT")
-    while position == 2 and mode == 2:
-      module.actualPosition()
+			up = 'n'
+			n += 1
+			print("Sample down")
+			print("Completed transient", n, "of", NS, "at magnetic field strength of", BSample, "mT")
+			startposition = module.actualPosition()
+		while position == 2 and mode == 2:
+			currposition = ((module.actualPosition() - startposition)*Circ)/NStep
+			speed = eval(ramp)
+			module.setTargetSpeed(speed)
 		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
