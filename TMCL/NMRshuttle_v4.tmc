@@ -60,7 +60,7 @@ Inp0change:		//Motor move down
    GGP dist, 2					//Get distance to move
    CALCX ADD					//Calculate position motor needs to move to and save to accumulator
    AAP 0, 0						//Set target position to accumulator value
-   WAIT POS, 0, 1000  			//Wait until motor in position. Timeout if not reached within 10 seconds
+   WAIT POS, 0  			//Wait until motor in position.
    SGP position, 2, 0			//Set sample position to 'down'
    SIO 0, 2, 0					//Set Output0 high (sample stationary)
    EI 40				//Enable Interupt0
@@ -76,7 +76,7 @@ Inp1change:		//Motor move up
    CALCX SUB					//Calculate position motor needs to move to and save to accumulator
    CALC MUL, -1					//Calculate position motor needs to move to and save to accumulator
    AAP 0, 0						//Set target position to accumulator value
-   WAIT POS, 0, 1000			//Wait until motor in position. Timeout if not reached within 10 seconds
+   WAIT POS, 0			//Wait until motor in position.
    SGP position, 2, 1			//Set sample position to 'up'
    SIO 0, 2, 0					//Set Output0 high (sample stationary)
    EI 39				//Enable Interupt0
