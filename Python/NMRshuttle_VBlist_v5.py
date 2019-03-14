@@ -1,4 +1,4 @@
- # Import libraries and define functions
+# Import libraries and define functions
 import PyTrinamic
 from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
 from PyTrinamic.modules.TMCM_1160 import TMCM_1160
@@ -16,7 +16,7 @@ b = float((setup.split('b: ')[1].split('\n')[0]))                     # Magnetic
 Circ = float((setup.split('Circ: ')[1].split('\n')[0]))		         # Circumference of spindle wheel (cm)
 NStep = int((setup.split('NStep: ')[1].split('\n')[0]))       # Number of steps for one full revolution of motor
 speed = int((setup.split('speed: ')[1].split('\n')[0]))         # Target motor speed
-ramp = int((setup.split('ramp: ')[1].split('\n')[0]))         # Equation for velocity ramp
+ramp = (setup.split('ramp: ')[1].split('\n')[0])         # Equation for velocity ramp
 
 PyTrinamic.showInfo()
 PyTrinamic.showAvailableComPorts()
@@ -29,15 +29,13 @@ module = TMCM_1160(myInterface)
 
 # Get operation mode
 mode = int(input("Select operation mode [1 = Constant velocity, 2 = Velocity sweep]: "))
-if mode != (1 or 2):
-  print("Invalid value for operation mode.")
-  break
+if mode not in [1,2]:
+	print("Invalid value for operation mode.")
 
 # Get tube type
 type = int(input("Select NMR tube type [1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube]: "))
-if mode != (1 or 2 or 3):
-  print("Invalid value for tube type.")
-  break
+if type not in [1,2,3]:
+	print("Invalid value for tube type.")
 
 # Motor settings
 module.setMaxVelocity(int((setup.split('maxspeed: ')[1].split('\n')[0])))
@@ -50,7 +48,7 @@ module.stallguard2Threshold(int((setup.split(str(type)+'_stallguard2Threshold: '
 module.stopOnStall(int((setup.split(str(type)+'_stopOnStall: ')[1].split('\n')[0])))
 
 if mode == 1:
-  module.setTargetSpeed(speed)
+	module.setTargetSpeed(speed)
 
 # Reset all error flags
 errflag = 0
@@ -90,6 +88,7 @@ for x in VBlist:
 	# Check position of sample and wait until finished
 	n = 0
 	up = 'n'
+	start_position = module.actualPosition()
 	while n < NS:	
 		# Check for errors in motor
 		error = module.userVariable(9)
@@ -106,22 +105,16 @@ for x in VBlist:
 		position = module.userVariable(8)
 		if up == 'n' and position == 1:
 			up = 'y'
-			print("Sample up in ", elapsed_time, " seconds.")
-			start_position = module.actualPosition()
+			print("Sample up")
 		if up == 'y' and position == 0:
 			up = 'n'
 			n += 1
-			print("Sample down in ", elapsed_time, " seconds.")
+			print("Sample down")
 			print("Completed transient", n, "of", NS, "at magnetic field strength of", BSample, "mT")
-			start_position = module.actualPosition()
-		start_time = time.time()
-		while position == 2 and mode == 2:
-			curr_position = ((module.actualPosition() - start_position)*Circ)/NStep
-			speed = eval(ramp)
+		if position == 2 and mode == 2:
+			curr_position = ((module.actualPosition()-start_position)*-Circ)/NStep
+			speed = int(eval(ramp))
 			module.setTargetSpeed(speed)
-			elapsed_time = start_time - time.time()
-		while position == 2 and mode != 2:
-			elapsed_time = start_time - time.time()
 		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
