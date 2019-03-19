@@ -1,9 +1,26 @@
+#
+# NMRshuttle_VBlist.py
+# Version 5, Mar 2019
+#
+# Andrew Hall 2019 (c)
+# a.m.r.hall@soton.ac.uk
+#
+# Python script for controlling NMR low field shuttle with Trinamic TMCM-1060 or TMCM-1160 motor.
+# Includes options for different NMR tubes and for arbitarily defined velocity/distance profiles.
+# Requires setup file containing motor parameters and VBlist file containing list of field strengths 
+# to be installed in same directory as this python script. Also requires PyTrinamic and Serial libraries.
+#
+
+
 # Import libraries and define functions
 import PyTrinamic
 from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
 from PyTrinamic.modules.TMCM_1160 import TMCM_1160
 import time
 import datetime 
+
+# Print information about script
+Print("\n\nNMRshuttle_VBlist\nVersion 5\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
 
 # Import default values from setup file
 setup = open("NMRshuttle_setup.txt","r").read()
