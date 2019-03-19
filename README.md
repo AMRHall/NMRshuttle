@@ -1,6 +1,7 @@
-NMR_Shuttle
+# NMR_Shuttle
 
-Andrew Hall 2019 (c)
+Andrew Hall &#169; 2019
+
 a.m.r.hall@soton.ac.uk
 
 Python script for controlling NMR low field shuttle with Trinamic TMCM-1060 or TMCM-1160 motor.
