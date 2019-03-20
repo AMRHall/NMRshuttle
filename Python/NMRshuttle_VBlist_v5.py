@@ -20,7 +20,7 @@ import time
 import datetime 
 
 # Print information about script
-Print("\n\nNMRshuttle_VBlist\nVersion 5\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
+print("\n\nNMRshuttle_VBlist\nVersion 5\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
 
 # Import default values from setup file
 setup = open("NMRshuttle_setup.txt","r").read()
