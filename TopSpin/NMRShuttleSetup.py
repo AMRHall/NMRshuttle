@@ -3,7 +3,7 @@ Created on 21.03.2019
 @author: AH
 '''
 
-class NMRShuttle(object)
+class NMRShuttle(object):
 
   # Serial port name for motor
   serial =            "/dev/ttyACM0"
@@ -40,7 +40,7 @@ class NMRShuttle(object)
 
 
 
-class stallGuard_stan(object)
+class stallGuard_stan(object):
   # Stall guard settings for standard glass tube
   motorRunCurrent =         64
   motorStandbyCurrent =     16
@@ -48,7 +48,7 @@ class stallGuard_stan(object)
   stallguard2Threshold =    4
   stopOnStall =             1000
 
-class stallGuard_HP5(object)
+class stallGuard_HP5(object):
   # Stall guard settings for 5mm high pressure tube
   motorRunCurrent =         64
   motorStandbyCurrent =     16
@@ -56,7 +56,7 @@ class stallGuard_HP5(object)
   stallguard2Threshold =    4
   stopOnStall =             1000
 
-class stallGuard_HP10(object)
+class stallGuard_HP10(object):
   # Stall guard settings for 10mm high pressure tube
   motorRunCurrent =         80
   motorStandbyCurrent =     16
