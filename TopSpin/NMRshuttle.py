@@ -15,8 +15,8 @@
 
 # Import libraries and define functions
 import PyTrinamic
-from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
-from PyTrinamic.modules.TMCM_1160 import TMCM_1160
+from serial_tmcl_interface import serial_tmcl_interface
+from TMCM_1160 import TMCM_1160
 import NMRShuttleSetup
 import time
 import datetime 
