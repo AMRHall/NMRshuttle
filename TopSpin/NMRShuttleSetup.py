@@ -19,7 +19,7 @@ class NMRShuttle(object)
   b =                 22.6300087
 
   #Circumference of motor wheel (cm)
-  Circ =              25
+  circ =              25
 
   #Number of steps for full revolution of motor
   NStep =             51200
@@ -33,7 +33,7 @@ class NMRShuttle(object)
   accel =             1099
 
   #Maximum motor speed (0...2047). Max speed approx. 42 cm/second.
-  maxspeed =          2047
+  maxSpeed =          2047
 
   #Velocity ramp equation
   ramp =              "100 + 5 * currposition"
