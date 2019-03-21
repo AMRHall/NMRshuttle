@@ -1,29 +1,44 @@
- # Import libraries and define functions
+
+#
+# NMRshuttle.py
+# Version 2.0, Mar 2019
+#
+# Andrew Hall 2019 (c)
+# a.m.r.hall@soton.ac.uk
+#
+# Python script for controlling NMR low field shuttle with Trinamic TMCM-1060 or TMCM-1160 motor using TopSpin.
+# Includes options for different NMR tubes and for arbitarily defined velocity/distance profiles.
+# Requires setup file containing motor parameters. Also requires PyTrinamic and Serial libraries.
+# 
+#
+
+
+# Import libraries and define functions
 import PyTrinamic
 from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
 from PyTrinamic.modules.TMCM_1160 import TMCM_1160
+import NMRShuttleSetup
 import time
 import datetime 
 
 # Import default values from setup file
-setup = open("NMRshuttle_setup.txt","r").read()
+setup = NMRShuttleSetup.NMRShuttle()
 
 # Define parameters of magnet + shuttle system
-MaxHeight = float((setup.split('MaxHeight: ')[1].split('\n')[0]))        # Maximum height of sample (cm)
-B0 = float((setup.split('B0: ')[1].split('\n')[0]))                # Magnetic field strength at centre of magnet (Tesla)
-a = float((setup.split('a: ')[1].split('\n')[0]))                   # Magnetic field fitting parameter 1 
-b = float((setup.split('b: ')[1].split('\n')[0]))                     # Magnetic filed fitting parameter 2
-Circ = float((setup.split('Circ: ')[1].split('\n')[0]))		         # Circumference of spindle wheel (cm)
-NStep = int((setup.split('NStep: ')[1].split('\n')[0]))       # Number of steps for one full revolution of motor
+MaxHeight = setup.maxHeight        # Maximum height of sample (cm)
+B0 = setup.B0              # Magnetic field strength at centre of magnet (Tesla)
+a = setup.a                 # Magnetic field fitting parameter 1 
+b = setup.b                     # Magnetic filed fitting parameter 2
+Circ = setup.circ		         # Circumference of spindle wheel (cm)
+NStep = setup.NStep       # Number of steps for one full revolution of motor
 speed = GETPAR("CNST10")				         # Target motor speed
-ramp = int((setup.split('ramp: ')[1].split('\n')[0]))         # Equation for velocity ramp
+ramp = setup.ramp         # Equation for velocity ramp
 
 PyTrinamic.showInfo()
 PyTrinamic.showAvailableComPorts()
 
 # For usb connection
-port = (setup.split('serial: ')[1].split('\n')[0])
-myInterface = serial_tmcl_interface(port)
+myInterface = serial_tmcl_interface(setup.port)
 
 module = TMCM_1160(myInterface)
 
@@ -31,23 +46,27 @@ module = TMCM_1160(myInterface)
 mode = GETPAR("CNST11") # 1 = Constant velocity, 2 = Velocity sweep
 if mode != (1 or 2):
   ERRMSG("Invalid value for operation mode.", modal=1)
-  break
 
 # Get tube type
 type = GETPAR("CNST12") # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
-if mode != (1 or 2 or 3):
+if mode == 1
+  stallGuard = NMRShuttleSetup.stallGuard_stan()
+elif mode == 2
+  stallGuard = NMRShuttleSetup.stallGuard_HP5()
+elif mode == 3
+  stallGuard = NMRShuttleSetup.stallGuard_HP10()
+else
   ERRMSG("Invalid value for tube type.", modal=1)
-  break
 
 # Motor settings
-module.setMaxVelocity(int((setup.split('maxspeed: ')[1].split('\n')[0])))
-module.setMaxAcceleration(int((setup.split('accel: ')[1].split('\n')[0])))
+module.setMaxVelocity(setup.maxSpeed)
+module.setMaxAcceleration(setup.accel)
 
-module.motorRunCurrent(int((setup.split(str(type)+'_motorRunCurrent: ')[1].split('\n')[0])))
-module.motorStandbyCurrent(int((setup.split(str(type)+'_motorStandbyCurrent: ')[1].split('\n')[0])))
-module.stallguard2Filter(int((setup.split(str(type)+'_stallguard2Filter: ')[1].split('\n')[0])))
-module.stallguard2Threshold(int((setup.split(str(type)+'_stallguard2Threshold: ')[1].split('\n')[0])))
-module.stopOnStall(int((setup.split(str(type)+'_stopOnStall: ')[1].split('\n')[0])))
+module.motorRunCurrent(stallGuard.motorRunCurrent)
+module.motorStandbyCurrent(stallGuard.motorStandbyCurrent)
+module.stallguard2Filter(stallGuard.stallguard2Filter)
+module.stallguard2Threshold(stallGuard.stallguard2Threshold)
+module.stopOnStall(stallGuard.stopOnStall)
 
 if mode == 1:
   module.setTargetSpeed(speed)
@@ -89,6 +108,7 @@ module.setUserVariable(1,steps)
 # Check position of sample and wait until finished
 n = 0
 up = 'n'
+start_position = module.actualPosition()
 while n < NS:	
 	# Check for errors in motor
 	error = module.userVariable(9)
@@ -107,7 +127,6 @@ while n < NS:
 		up = 'y'
 		status_msg = str("Sample up in ", elapsed_time, " seconds.")
 		SHOW_STATUS(status_msg)
-		start_position = module.actualPosition()
 	if up == 'y' and position == 0:
 		up = 'n'
 		n += 1
@@ -115,15 +134,10 @@ while n < NS:
 		SHOW_STATUS(status_msg)
 		status_msg = str("Completed transient", n, "of", NS, "at magnetic field strength of", BSample, "mT")
 		SHOW_STATUS(status_msg)
-		start_position = module.actualPosition()
-	start_time = time.time()
-	while position == 2 and mode == 2:
-		curr_position = ((module.actualPosition() - start_position)*Circ)/NStep
-		speed = eval(ramp)
+	if position == 2 and mode == 2:
+		curr_position = ((module.actualPosition()-start_position)*-Circ)/NStep
+		speed = int(eval(ramp))
 		module.setTargetSpeed(speed)
-		elapsed_time = start_time - time.time()
-	while position == 2 and mode != 2:
-		elapsed_time = start_time - time.time()
 		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
