@@ -14,10 +14,12 @@
 
 
 # Import libraries and define functions
-import PyTrinamic
-from serial_tmcl_interface import serial_tmcl_interface
-from TMCM_1160 import TMCM_1160
 import NMRShuttleSetup
+import sys
+sys.path.append('/Users/amrh1c18/Documents/Python')
+import PyTrinamic
+from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
+from PyTrinamic.modules.TMCM_1160 import TMCM_1160
 import time
 import datetime 
 
@@ -46,6 +48,7 @@ module = TMCM_1160(myInterface)
 mode = GETPAR("CNST11") # 1 = Constant velocity, 2 = Velocity sweep
 if mode != (1 or 2):
   ERRMSG("Invalid value for operation mode.", modal=1)
+  EXIT()
 
 # Get tube type
 type = GETPAR("CNST12") # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
@@ -55,8 +58,9 @@ elif type == 2:
   stallGuard = NMRShuttleSetup.stallGuard_HP5()
 elif type == 3:
   stallGuard = NMRShuttleSetup.stallGuard_HP10()
-else
+else:
   ERRMSG("Invalid value for tube type.", modal=1)
+  EXIT()
 
 # Motor settings
 module.setMaxVelocity(setup.maxSpeed)
@@ -78,10 +82,6 @@ module.setUserVariable(9,0)
 # Get number of transients for each field strength
 NS = GETPAR("NS")
 
-# Check for error flags
-if errflag != 0:
-	break
-
 # Fetch desired magnetic field strength (mT)
 BSample = GETPAR("CNST20")
 status_msg = str("\nMagnetic field strength =", BSample, "mT")
@@ -96,7 +96,6 @@ SHOW_STATUS(status_msg)
 if (dist < 0)  or (dist > MaxHeight):
 	ERRMSG("Field strength out of range!", modal=1)
 	errflag += 1
-	break
     
 # Calculate number of steps
 steps = int((dist*NStep)/Circ)
