@@ -49,11 +49,11 @@ if mode != (1 or 2):
 
 # Get tube type
 type = GETPAR("CNST12") # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
-if mode == 1
+if type == 1
   stallGuard = NMRShuttleSetup.stallGuard_stan()
-elif mode == 2
+elif type == 2
   stallGuard = NMRShuttleSetup.stallGuard_HP5()
-elif mode == 3
+elif type == 3
   stallGuard = NMRShuttleSetup.stallGuard_HP10()
 else
   ERRMSG("Invalid value for tube type.", modal=1)
