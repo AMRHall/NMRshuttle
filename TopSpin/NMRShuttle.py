@@ -32,25 +32,17 @@ a = setup.a                 # Magnetic field fitting parameter 1
 b = setup.b                     # Magnetic filed fitting parameter 2
 Circ = setup.circ		         # Circumference of spindle wheel (cm)
 NStep = setup.NStep       # Number of steps for one full revolution of motor
-speed = int(sys.argv[1])				         # Target motor speed
+speed = setup.speed				         # Target motor speed
 ramp = setup.ramp         # Equation for velocity ramp
 
-PyTrinamic.showInfo()
-PyTrinamic.showAvailableComPorts()
-
-# For usb connection
-myInterface = serial_tmcl_interface(setup.port)
-
-module = TMCM_1160(myInterface)
-
 # Get operation mode
-mode = int(sys.argv[2]) # 1 = Constant velocity, 2 = Velocity sweep
+mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep
 if mode != (1 or 2):
-  ERRMSG("Invalid value for operation mode.", modal=1)
-  EXIT()
+  print("Invalid value for operation mode.")
+  sys.exit(0)
 
 # Get tube type
-type = int(sys.argv[3]) # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
+type = int(sys.argv[2]) # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
 if type == 1:
   stallGuard = NMRShuttleSetup.stallGuard_stan()
 elif type == 2:
@@ -58,8 +50,16 @@ elif type == 2:
 elif type == 3:
   stallGuard = NMRShuttleSetup.stallGuard_HP10()
 else:
-  ERRMSG("Invalid value for tube type.", modal=1)
-  EXIT()
+  print("Invalid value for tube type.")
+  sys.exit(0)
+
+PyTrinamic.showInfo()
+PyTrinamic.showAvailableComPorts()
+
+# For usb connection
+myInterface = serial_tmcl_interface(setup.serial)
+
+module = TMCM_1160(myInterface)
 
 # Motor settings
 module.setMaxVelocity(setup.maxSpeed)
@@ -79,27 +79,27 @@ errflag = 0
 module.setUserVariable(9,0)
 
 # Get number of transients for each field strength
-NS = int(sys.argv[5])
+NS = int(sys.argv[4])
 
 # Fetch desired magnetic field strength (mT)
-BSample = float(sys.argv[4])
-status_msg = str("\nMagnetic field strength =", BSample, "mT")
-SHOW_STATUS(status_msg)
+BSample = int(sys.argv[3])
+print(str("\nMagnetic field strength = " + str(BSample) +  " mT"))
+
     
 # Calculate sample position needed to achieve this field strength
 dist = float(b*(((B0/BSample)-1)**(1/a)))
-status_msg = str("Height = ", dist, " cm")
-SHOW_STATUS(status_msg)
+print(str("Height = " + str(dist) + " cm"))
+
     
 # Error if sample position too high or too low
 if (dist < 0)  or (dist > MaxHeight):
-	ERRMSG("Field strength out of range!", modal=1)
+	print("Field strength out of range!")
 	errflag += 1
+	sys.exit(0)
     
 # Calculate number of steps
 steps = int((dist*NStep)/Circ)
-status_msg = str("Number of steps =", steps)
-print(status_msg)
+print(str("Number of steps = " + str(steps)))
 
 module.setUserVariable(1,steps)
   
@@ -111,11 +111,11 @@ while n < NS:
 	# Check for errors in motor
 	error = module.userVariable(9)
 	if error == 1:		#Shutdown error from light gate
-		ERRMSG("Emergency stop detected. Aborting acquisition.", modal=1)
+		print("\nEmergency stop detected. Aborting acquisition.")
 		errflag += 1
 		break
 	elif error == 2:       #Stall detected
-		ERRMSG("Stall detected. Aborting acquisition.", modal=1)
+		print("\nStall detected. Aborting acquisition.")
 		errflag += 1
 		break
 	
@@ -123,15 +123,12 @@ while n < NS:
 	position = module.userVariable(8)
 	if up == 'n' and position == 1:
 		up = 'y'
-		status_msg = str("Sample up in ", elapsed_time, " seconds.")
-		SHOW_STATUS(status_msg)
+		print("Sample up.")
 	if up == 'y' and position == 0:
 		up = 'n'
 		n += 1
-		status_msg = str("Sample down in ", elapsed_time, " seconds.")
-		SHOW_STATUS(status_msg)
-		status_msg = str("Completed transient", n, "of", NS, "at magnetic field strength of", BSample, "mT")
-		SHOW_STATUS(status_msg)
+		print("Sample down.")
+		print(str("Completed transient " + str(n) + " of " + str(NS) + " at magnetic field strength of " + str(BSample) + " mT"))
 	if position == 2 and mode == 2:
 		curr_position = ((module.actualPosition()-start_position)*-Circ)/NStep
 		speed = int(eval(ramp))
@@ -144,11 +141,9 @@ module.setUserVariable(1,0)
 # Print competion message
 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 if errflag ==0:
-	status_msg = str("\nSequence successfully completed at", timestamp)
-	ERRMSG(status_msg)
+	print(str("\nSequence successfully completed at " + str(timestamp)))
 else:
-	status_msg = str("\nSequence aborted with", errflag, "error(s) at", timestamp)
-	ERRMSG(status_msg, modal=1)
+	print(str("Sequence aborted with " + str(errflag) + " error(s) at " + str(timestamp) + "\n"))
 
 # Close serial port
 myInterface.close()
