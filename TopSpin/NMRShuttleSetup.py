@@ -9,14 +9,14 @@ class NMRShuttle(object):
   serial =            "/dev/ttyACM0"
 
   # Maximum allowed height (cm)
-  maxHeight =         100
+  maxHeight =         90
 
   # Magnetic field strength at magnet core (mT)
-  B0 =                9396.658
+  B0 =                7056.39197
 
   # Fitting parameters for NMR field map [equation of the form BSample = B0/(1+(x/b)^a)]
-  a =                 5.99796284
-  b =                 22.6300087
+  a =                 5.75
+  b =                 20.34
 
   # Circumference of motor wheel (cm)
   circ =              25
@@ -30,7 +30,7 @@ class NMRShuttle(object):
   speed =             1677
 
   # Motor acceleration (0...2047) 1099 is approximately 2000 steps/second^2 (pps^2)
-  accel =             1099
+  accel =             100
 
   # Maximum motor speed (0...2047). Max speed approx. 42 cm/second.
   maxSpeed =          2047
