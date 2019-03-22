@@ -16,7 +16,6 @@
 # Import libraries and define functions
 import NMRShuttleSetup
 import sys
-sys.path.append('/Users/amrh1c18/Documents/Python')
 import PyTrinamic
 from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
 from PyTrinamic.modules.TMCM_1160 import TMCM_1160
@@ -33,7 +32,7 @@ a = setup.a                 # Magnetic field fitting parameter 1
 b = setup.b                     # Magnetic filed fitting parameter 2
 Circ = setup.circ		         # Circumference of spindle wheel (cm)
 NStep = setup.NStep       # Number of steps for one full revolution of motor
-speed = GETPAR("CNST10")				         # Target motor speed
+speed = int(sys.argv[1])				         # Target motor speed
 ramp = setup.ramp         # Equation for velocity ramp
 
 PyTrinamic.showInfo()
@@ -45,13 +44,13 @@ myInterface = serial_tmcl_interface(setup.port)
 module = TMCM_1160(myInterface)
 
 # Get operation mode
-mode = GETPAR("CNST11") # 1 = Constant velocity, 2 = Velocity sweep
+mode = int(sys.argv[2]) # 1 = Constant velocity, 2 = Velocity sweep
 if mode != (1 or 2):
   ERRMSG("Invalid value for operation mode.", modal=1)
   EXIT()
 
 # Get tube type
-type = GETPAR("CNST12") # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
+type = int(sys.argv[3]) # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
 if type == 1:
   stallGuard = NMRShuttleSetup.stallGuard_stan()
 elif type == 2:
@@ -80,10 +79,10 @@ errflag = 0
 module.setUserVariable(9,0)
 
 # Get number of transients for each field strength
-NS = GETPAR("NS")
+NS = int(sys.argv[5])
 
 # Fetch desired magnetic field strength (mT)
-BSample = GETPAR("CNST20")
+BSample = float(sys.argv[4])
 status_msg = str("\nMagnetic field strength =", BSample, "mT")
 SHOW_STATUS(status_msg)
     
