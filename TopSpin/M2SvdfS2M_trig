@@ -118,6 +118,7 @@ ph31 = 1 3
 ;cnst11 : Operation mode (1 = constant velocity, 2 = velocity sweep)
 ;cnst12 : Tube type (1 = standard 5mm glass tube, 2 =5 mm high pressure tube, 3 = 10mm high pressure tube)
 ;cnst20 : Low field strength (mT)
+;cnst30 : Target motor speed (optional) (Range: 2...2048. If this value is not set the motor will use the default speed set in NMRShuttleSetup.py).
 
 ; other parameters
 
