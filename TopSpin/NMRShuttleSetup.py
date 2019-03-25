@@ -61,6 +61,6 @@ class stallGuard_HP10(object):
   motorRunCurrent =         80
   motorStandbyCurrent =     16
   stallguard2Filter =       1
-  stallguard2Threshold =    5
+  stallguard2Threshold =    8
   stopOnStall =             1000
 
