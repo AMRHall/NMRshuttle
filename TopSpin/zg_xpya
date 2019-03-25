@@ -1,0 +1,26 @@
+/*** ^^A -*-C++-*- **********************************************/
+/*	zg_xpya			25.03.2019			*/
+/****************************************************************/
+/*	Short Description :					*/
+/*	AU program for simultaneous execution of python script */
+/*  and acquisition.               */
+/****************************************************************/
+/*	Keywords :						*/
+/*	zg, xpya							*/
+/****************************************************************/
+/*	Description/Usage :					*/
+/*	Executes python script specified in PYNM and aquisition		*/
+/*	simultaneously.	*/
+/****************************************************************/
+/*	Author(s) :						*/
+/*	Name		: Andrew Hall			*/
+/*	Organisation	: University of Southampton			*/
+/*	Email		: a.m.r.hall@soton.ac.uk		*/
+/****************************************************************/
+/*	Name		Date	Modification:			*/
+/*	amrh		25032019	created				*/
+/****************************************************************/
+
+GETCURDATA
+{SETCURDATA AUERR=CPR_exec("sendgui xpya",CONT_EX); ZG_OVERWRITE }
+QUIT
