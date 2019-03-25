@@ -30,13 +30,18 @@ setup = NMRShuttleSetup.NMRShuttle()
 
 # Define parameters of magnet + shuttle system
 MaxHeight = setup.maxHeight        # Maximum height of sample (cm)
-B0 = setup.B0              # Magnetic field strength at centre of magnet (Tesla)
-a = setup.a                 # Magnetic field fitting parameter 1 
-b = setup.b                     # Magnetic filed fitting parameter 2
-Circ = setup.circ		         # Circumference of spindle wheel (cm)
-NStep = setup.NStep       # Number of steps for one full revolution of motor
-speed = setup.speed				         # Target motor speed
-ramp = setup.ramp         # Equation for velocity ramp
+B0 = setup.B0                      # Magnetic field strength at centre of magnet (Tesla)
+a = setup.a                        # Magnetic field fitting parameter 1 
+b = setup.b                        # Magnetic filed fitting parameter 2
+Circ = setup.circ		   # Circumference of spindle wheel (cm)
+NStep = setup.NStep                # Number of steps for one full revolution of motor
+speed = setup.speed		   # Default motor speed
+ramp = setup.ramp                  # Equation for velocity ramp
+
+# Overide speed if user has set one in TopSpin
+if int(sys.argv[6]) > 1:
+  speed = int(sys.argv[6])
+
 
 # Get operation mode
 mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep
@@ -81,11 +86,6 @@ if mode == 1:
 errflag = 0
 module.setUserVariable(9,0)
 
-# Get number of transients for each field strength
-NS = int(sys.argv[4])
-
-# Get number of 2D slices
-TD = int(sys.argv[5])
 
 # Fetch desired magnetic field strength (mT)
 BSample = int(sys.argv[3])
@@ -108,6 +108,13 @@ steps = int((dist*NStep)/Circ)
 print(str("Number of steps = " + str(steps)))
 
 module.setUserVariable(1,steps)
+
+
+# Get number of transients for each field strength
+NS = int(sys.argv[4])
+
+# Get number of 2D slices
+TD = int(sys.argv[5])
   
 # Check position of sample and wait until finished
 up = 'n'
@@ -115,6 +122,7 @@ start_position = module.actualPosition()
 m = 0
 while m < TD:
 	n = 0
+	m += 1
 	while n < NS:	
 		# Check for errors in motor
 		error = module.userVariable(9)
@@ -144,7 +152,6 @@ while m < TD:
 			curr_position = ((module.actualPosition()-start_position)*-Circ)/NStep
 			speed = int(eval(ramp))
 			module.setTargetSpeed(speed)
-	td += 1
 		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
