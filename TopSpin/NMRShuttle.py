@@ -85,7 +85,9 @@ module.stopOnStall(stallGuard.stopOnStall)
 
 if mode == 1:
   module.setTargetSpeed(speed)
-
+  print("\nTarget speed = " + str(speed))
+print("Acceleration = " + str(accel) + "\n")
+	
 # Reset all error flags
 errflag = 0
 module.setUserVariable(9,0)
@@ -109,7 +111,7 @@ if (dist < 0)  or (dist > MaxHeight):
     
 # Calculate number of steps
 steps = int((dist*NStep)/Circ)
-print(str("Number of steps = " + str(steps)))
+print(str("Number of steps = " + str(steps) + "\n"))
 
 module.setUserVariable(1,steps)
 
@@ -151,7 +153,7 @@ while m < TD:
 			if TD == 1:
 				print(str("Completed scan " + str(n) + " of " + str(NS) + " at magnetic field strength of " + str(BSample) + " mT\n"))
 			else:
-				print(str("Completed scan " + str(n) + "/" + str(NS) + " for 2D slice" + str(m) + "/" + str(TD) + " at magnetic field strength of " + str(BSample) + " mT\n"))
+				print(str("Completed scan " + str(n) + "/" + str(NS) + " for 2D slice " + str(m) + "/" + str(TD) + " at magnetic field strength of " + str(BSample) + " mT\n"))
 		if position == 2 and mode == 2:
 			curr_position = ((module.actualPosition()-start_position)*-Circ)/NStep
 			speed = int(eval(ramp))
