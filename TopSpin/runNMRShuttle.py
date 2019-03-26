@@ -8,12 +8,13 @@ BSample = GETPAR("CNST 20")
 ns = GETPAR("NS")
 dim = GETPAR("PARMODE")
 speed = GETPAR("CNST 30")
+accel = GETPAR("CNST 31")
 if dim != 0:
   td = GETPAR("TD",1)
 else:
   td = 1
 
-command = str("python3.6 NMRShuttle.py " + mode + " " + type + " " + BSample + " " + ns + " " + td + " " + speed)
+command = str("python3.6 NMRShuttle.py " + mode + " " + type + " " + BSample + " " + ns + " " + td + " " + speed + " " + accel)
 
 print(command)
 os.system(command)
