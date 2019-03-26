@@ -124,6 +124,7 @@ The following constants are also used to set parameters within the NMRShuttle pr
 | CNST 12    | 1...3| NMR tube type (1 = standard 5mm glass tube, 2 =5 mm high pressure tube, 3 = 10mm high pressure tube) |
 | CNST 20    | (0)...B0| Low field strength (mT): Use this to set the field strength that you want the motor to move to. NOTE: Minimum field strength will depend on magnet and apparatus parameters. |
 | CNST 30    | 2...2048| Specify target speed (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
+| CNST 31    | 2...2048| Specify acceleration (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
 
 ### 4.5. Starting the experiment
 The NMR experiment must be started by calling the `zg_xpya` automation program, either directly by name, or using the `xaua` command. If you wish to queue multiple experiments, then the `multizg` program can be modified by replacing `zg` with `xaua` in the `multizg` program.
