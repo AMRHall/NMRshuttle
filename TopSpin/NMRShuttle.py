@@ -37,11 +37,15 @@ Circ = setup.circ		   # Circumference of spindle wheel (cm)
 NStep = setup.NStep                # Number of steps for one full revolution of motor
 speed = setup.speed		   # Default motor speed
 ramp = setup.ramp                  # Equation for velocity ramp
+accel = setup.accel		   # Default acceleration
 
 # Overide speed if user has set one in TopSpin
 if int(sys.argv[6]) > 1:
   speed = int(sys.argv[6])
 
+# Overide acceleration if user has set one in TopSpin
+if int(sys.argv[7]) > 1:
+  accel = int(sys.argv[7])
 
 # Get operation mode
 mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep
@@ -71,7 +75,7 @@ module = TMCM_1160(myInterface)
 
 # Motor settings
 module.setMaxVelocity(setup.maxSpeed)
-module.setMaxAcceleration(setup.accel)
+module.setMaxAcceleration(accel)
 
 module.motorRunCurrent(stallGuard.motorRunCurrent)
 module.motorStandbyCurrent(stallGuard.motorStandbyCurrent)
