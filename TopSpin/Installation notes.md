@@ -73,7 +73,7 @@ Go to File > Import and from the folder that you have just downloaded select the
 
 Import these files into TopSpin.
 
-Open the file named `runNMRShuttle.py` and check that the file path on line 3 matches the location that you have just saved the files to.
+Open the file named `runNMRShuttle.py` and check that the file path on line 8 matches the location that you have just saved the files to.
 
 ### 3.3. Install AU program
 In TopSpin enter the command `edau` to go to the automation program library.
@@ -118,14 +118,14 @@ The following constants are also used to set parameters within the NMRShuttle pr
 
 | Constant        | Value           | Meaning  |
 | --- | --- | --- |
-| NS     | 1...&#8734;| Number of scans for each FID |
+| NS     | 1...&#8734;| Number of scans for each FID. |
 | TD(F1)    | 1...&#8734;| Number time domain points for 2nd dimension (typically used to for variable delay in pseudo-2D spectra) |
-| CNST 11    | 1...3| Operation mode for NMR Shuttle (1 = constant velocity, 2 = velocity sweep, 3 = constant time) |
-| CNST 12    | 1...3| NMR tube type (1 = standard 5mm glass tube, 2 =5 mm high pressure tube, 3 = 10mm high pressure tube) |
+| CNST 11    | 1...3| Operation mode for NMR Shuttle. (1 = constant velocity, 2 = velocity sweep, 3 = constant time) |
+| CNST 12    | 1...3| NMR tube type. (1 = standard 5mm glass tube, 2 =5 mm high pressure tube, 3 = 10mm high pressure tube) |
 | CNST 20    | (0)...B0| Low field strength (mT): Use this to set the field strength that you want the motor to move to. NOTE: Minimum field strength will depend on magnet and apparatus parameters. |
 | CNST 30    | 0.05...30.| Specify target speed (cm/s) (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
 | CNST 31    | 0.5...465| Specify acceleration (cm/s^2) (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
-| D10    | 0...&#8734;| Sample motion time (s) Used in pulse program and constant time mode. |
+| D10    | 0...&#8734;| Sample motion time (s). Used in pulse program and constant time mode. |
 
 ### 4.5. Acquisition modes
 The NMRShuttle can operate in three different modes:
