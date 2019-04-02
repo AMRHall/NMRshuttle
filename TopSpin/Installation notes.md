@@ -125,7 +125,7 @@ The following constants are also used to set parameters within the NMRShuttle pr
 | CNST 20    | (0)...B0| Low field strength (mT): Use this to set the field strength that you want the motor to move to. NOTE: Minimum field strength will depend on magnet and apparatus parameters. |
 | CNST 30    | 0.05...30.| Specify target speed (cm/s) (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
 | CNST 31    | 0.5...465| Specify acceleration (cm/s^2) (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
-| D10    | 0...&#8734;| Sample motion time (s) (used in pulse program and constand time mode). |
+| D10    | 0...&#8734;| Sample motion time (s) Used in pulse program and constant time mode. |
 
 ### 4.5. Acquisition modes
 The NMRShuttle can operate in three different modes:
