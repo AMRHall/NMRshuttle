@@ -26,13 +26,13 @@ class NMRShuttle(object):
 
 
 
-  # Target motor speed (0...2047)
-  speed =             1677
+  # Target motor speed (cm/s) (0...30.5)
+  speed =             25
 
-  # Motor acceleration (0...2047) 1099 is approximately 2000 steps/second^2 (pps^2)
-  accel =             100
+  # Motor acceleration (cm/s^2) (0...465.4). This can be adapted by changing motor rampDiv setting
+  accel =             22.74
 
-  # Maximum motor speed (0...2047). Max speed approx. 42 cm/second.
+  # Maximum motor speed (cm/s) (0...30.5). This can be adapted by changing motor pulDiv setting
   maxSpeed =          2047
 
   # Velocity ramp equation
