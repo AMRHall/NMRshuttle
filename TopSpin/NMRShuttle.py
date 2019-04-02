@@ -20,7 +20,8 @@ import PyTrinamic
 from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
 from PyTrinamic.modules.TMCM_1160 import TMCM_1160
 import time
-import datetime 
+import datetime
+import math
 
 # Print information about script
 print("\n\nNMRshuttle_VBlist\nVersion 5\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
@@ -48,8 +49,8 @@ if int(sys.argv[7]) > 1:
   accel = int(sys.argv[7])
 
 # Get operation mode
-mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep
-if mode != (1 or 2):
+mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep, 3 = Constant time
+if mode != 1 or mode != 2 or mode != 3:
   print("Invalid value for operation mode.")
   sys.exit(0)
 
@@ -83,10 +84,20 @@ module.stallguard2Filter(stallGuard.stallguard2Filter)
 module.stallguard2Threshold(stallGuard.stallguard2Threshold)
 module.stopOnStall(stallGuard.stopOnStall)
 
-if mode == 1:
+
+if mode == 1 or mode == 3:
   module.setTargetSpeed(speed)
   print("\nTarget speed = " + str(speed))
 print("Acceleration = " + str(accel) + "\n")
+
+# Convert speed and acceleration from real units to motor units
+pulseDiv = module.axisParameter(154)
+uStepRes = module.axisParameter(140)
+fullStepRot = 200
+rampDiv = module.axisParameter(153)
+
+speed = ((speed/circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))
+accel = ((accel/circ) * fullStepRot * (2**uStepRes) * (2**(rampDiv + pulsDiv + 29)))/((16 * (10**6))**2)
 	
 # Reset all error flags
 errflag = 0
