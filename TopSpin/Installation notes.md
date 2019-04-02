@@ -120,11 +120,20 @@ The following constants are also used to set parameters within the NMRShuttle pr
 | --- | --- | --- |
 | NS     | 1...&#8734;| Number of scans for each FID |
 | TD(F1)    | 1...&#8734;| Number time domain points for 2nd dimension (typically used to for variable delay in pseudo-2D spectra) |
-| CNST 11    | 1...2| Operation mode for NMR Shuttle (1 = constant velocity, 2 = velocity sweep) |
+| CNST 11    | 1...3| Operation mode for NMR Shuttle (1 = constant velocity, 2 = velocity sweep, 3 = constant time) |
 | CNST 12    | 1...3| NMR tube type (1 = standard 5mm glass tube, 2 =5 mm high pressure tube, 3 = 10mm high pressure tube) |
 | CNST 20    | (0)...B0| Low field strength (mT): Use this to set the field strength that you want the motor to move to. NOTE: Minimum field strength will depend on magnet and apparatus parameters. |
-| CNST 30    | 2...2048| Specify target speed (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
-| CNST 31    | 2...2048| Specify acceleration (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
+| CNST 30    | 0.05...30.|5 Specify target speed (cm/s) (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
+| CNST 31    | 0.5...465| Specify acceleration (cm/s^2) (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
 
-### 4.5. Starting the experiment
+### 4.5. Acquisition modes
+The NMRShuttle can operate in three different modes:
+1. Constant velocity (default): The sample is accelerated up to the target velocity set either in the NMRShuttleSetup file or CNST 30. The time taken to move the sample is dependant on the distance being traveled (and therefore on field strength).
+2. Velocity sweep: The sample speed follows a profile that is set using the equation in USERA1. This should be of the form:
+
+  speed = `function[curr_position]`
+
+3. Constant speed: The time taken for the sample motion to complete remains constant over all field strengths, however the sample velocity will change depending on the distance that must be moved. The sample motion time may be set using parameter D10. If the time set in D10 is too short to allow the sample motion to complete then an error message will be displayed and the experiment will not run.
+
+### 4.6. Starting the experiment
 The NMR experiment must be started by calling the `zg_xpya` automation program, either directly by name, or using the `xaua` command. If you wish to queue multiple experiments, then the `multizg` program can be modified by replacing `zg` with `xaua` in the `multizg` program.
