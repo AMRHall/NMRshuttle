@@ -16,6 +16,7 @@ dim = GETPAR("PARMODE")
 speed = GETPAR("CNST 30")
 accel = GETPAR("CNST 31")
 setTime = GETPAR("D10")
+ramp = GETPAR("USERA 1")
 if dim != 0:
   td = GETPAR("TD",1)
 else:
@@ -23,12 +24,29 @@ else:
   
 distance = float(setup.b*(((setup.B0/BSample)-1)**(1/setup.a)))
 
-#Error messages
-if mode != 1 or mode != 2 or mode !=3:
+#For modes 1 and 2 calculate sample motion time. For mode 3 calculate motor speed.
+if mode == 1:
+  if (accel * (speed/accel)**2) >= distance:
+    time = 2 * math.sqrt(distance/accel)
+  else:
+    time = 2 * (speed/accel) + (distance - accel*((speed/accel)**2))/speed
+if mode == 2:
+  time = setTime
+#If mode = constant time, calculate the speed that the motor needs to run at.
+if mode == 3:
+  speed = 0.5 * (accel * setTime - math.sqrt(accel) * math.sqrt(-4 * distance + accel * setTime**2))
+  if 4 * distance > accel * (setTime**2):
+    ERRMSG("Speed out of range! (CNST30)\nIncrease the sample motion time (D10).",modal=1)
+    ct = XCMD("STOP")
+    EXIT()
+else:
   ERRMSG("Invalid value for operation mode (CNST11).",modal=1)
   ct = XCMD("STOP")
   EXIT()
-  
+
+PUTPAR("D10", time)
+
+#Error messages
 if type != 1 or mode != 2 or mode !=3:
   ERRMSG("Invalid value for tube type (CNST12).",modal=1)
   ct = XCMD("STOP")
@@ -38,15 +56,6 @@ if (distance < 0)  or (distance > setup.maxHeight):
   ERRMSG("Field strength out of range! (CNST20)",modal=1)
   ct = XCMD("STOP")
   EXIT()
-	
-  
-#If mode = constant time, calculate the speed that the motor needs to run at.
-if mode == 3:
-  speed = 0.5 * (accel * setTime - math.sqrt(accel) * math.sqrt(-4 * distance + accel * setTime**2))
-  if 4 * distance > accel * (setTime**2):
-    ERRMSG("Speed out of range! (CNST30)\nIncrease the sample motion time (D10).",modal=1)
-    ct = XCMD("STOP")
-    EXIT()
 
 if (accel < 0)  or (accel > 465.434):
   ERRMSG("Acceleration out of range! (CNST31)",modal=1)
@@ -60,7 +69,7 @@ if (speed < 0)  or (accel > 30.5027):
   
 	
 #Call NMRShuttle.py with arguments  
-command = str("python3.6 NMRShuttle.py " + mode + " " + type + " " + BSample + " " + ns + " " + td + " " + speed + " " + accel)
+command = str("python3.6 NMRShuttle.py " + mode + " " + type + " " + BSample + " " + ns + " " + td + " " + speed + " " + accel + " " + ramp)
 
 print(command)
 os.system(command)
