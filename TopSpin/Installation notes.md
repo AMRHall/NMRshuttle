@@ -126,13 +126,16 @@ The following constants are also used to set parameters within the NMRShuttle pr
 | CNST 30    | 0.05...30.| Specify target speed (cm/s) (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
 | CNST 31    | 0.5...465| Specify acceleration (cm/s^2) (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
 | D10    | 0...&#8734;| Sample motion time (s). Used in pulse program and constant time mode. |
+| USERA 1    | String | Velocity ramp equation (arbitary). Given as a function of magnetic field strength 'currField'. |
 
 ### 4.5. Acquisition modes
 The NMRShuttle can operate in three different modes:
 1. Constant velocity (default): The sample is accelerated up to the target velocity set either in the NMRShuttleSetup file or CNST 30. The time taken to move the sample is dependant on the distance being traveled (and therefore on field strength).
-2. Velocity sweep: The sample speed follows a profile that is set using the equation in USERA1. This should be of the form:
-
-  speed = `function[curr_position]`
+2. Velocity sweep: This allows the user to set an arbitary equation relating the sample speed to the local field strength that the sample experiences at each point in the magnet. The sample speed follows a profile that is set using the ramp equation either in the setup file or the USERA1 parameter (the USERA1 parameter will override the equation given in the setup file). This should be of the form:
+speed = `function[currField]` 
+for example:
+`25/(1+math.exp(0.002 * (currField-5000)))`
+which describes a sigmoidal curve where the sample moves slowly at high field and quickly at low field, with a maximum speed of 25 cm/s and half-maximum speed at 5000 mT.
 
 3. Constant speed: The time taken for the sample motion to complete remains constant over all field strengths, however the sample velocity will change depending on the distance that must be moved. The sample motion time may be set using parameter D10. If the time set in D10 is too short to allow the sample motion to complete then an error message will be displayed and the experiment will not run.
 
