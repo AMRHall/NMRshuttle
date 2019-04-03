@@ -48,6 +48,10 @@ if int(sys.argv[6]) > 1:
 if int(sys.argv[7]) > 1:
   accel = int(sys.argv[7])
 
+# Overide ramp function if user has set one in TopSpin
+if len(sys.argv[8]) > 0:
+  ramp = str(sys.argv[8])
+
 # Get operation mode
 mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep, 3 = Constant time
 if mode != 1 or mode != 2 or mode != 3:
@@ -135,7 +139,7 @@ TD = int(sys.argv[5])
   
 # Check position of sample and wait until finished
 up = 'n'
-start_position = module.actualPosition()
+startPosition = module.actualPosition()
 m = 0
 while m < TD:
 	n = 0
@@ -166,7 +170,8 @@ while m < TD:
 			else:
 				print(str("Completed scan " + str(n) + "/" + str(NS) + " for 2D slice " + str(m) + "/" + str(TD) + " at magnetic field strength of " + str(BSample) + " mT\n"))
 		if position == 2 and mode == 2:
-			curr_position = ((module.actualPosition()-start_position)*-Circ)/NStep
+			currPosition = ((module.actualPosition()-startPosition)*-Circ)/NStep
+			currField = float(B0/(1+((currPosition/b)**a)))
 			speed = int(eval(ramp))
 			module.setTargetSpeed(speed)
 		
