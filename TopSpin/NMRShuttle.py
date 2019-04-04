@@ -41,20 +41,20 @@ ramp = setup.ramp                  # Equation for velocity ramp
 accel = setup.accel		   # Default acceleration
 
 # Overide speed if user has set one in TopSpin
-if int(sys.argv[6]) > 1:
+if float(sys.argv[6]) > 1:
   speed = int(sys.argv[6])
 
 # Overide acceleration if user has set one in TopSpin
-if int(sys.argv[7]) > 1:
+if float(sys.argv[7]) > 1:
   accel = int(sys.argv[7])
 
 # Overide ramp function if user has set one in TopSpin
-if len(sys.argv[8]) > 0:
+if sys.argv[8] != "None":
   ramp = str(sys.argv[8])
 
 # Get operation mode
 mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep, 3 = Constant time
-if mode != 1 or mode != 2 or mode != 3:
+if mode != (1 or 2 or 3):
   print("Invalid value for operation mode.")
   sys.exit(0)
 
@@ -100,8 +100,8 @@ uStepRes = module.axisParameter(140)
 fullStepRot = 200
 rampDiv = module.axisParameter(153)
 
-speed = ((speed/circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))
-accel = ((accel/circ) * fullStepRot * (2**uStepRes) * (2**(rampDiv + pulsDiv + 29)))/((16 * (10**6))**2)
+speed = ((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))
+accel = ((accel/Circ) * fullStepRot * (2**uStepRes) * (2**(rampDiv + pulseDiv + 29)))/((16 * (10**6))**2)
 	
 # Reset all error flags
 errflag = 0
