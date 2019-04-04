@@ -17,7 +17,7 @@ errflag = 9		// configure error flag as UserVariable9
 SGP errflag, 2, 0    	//clear error flag
 
 
-SIO 0, 2, 0		// initialise output0 (0 = sample in position, 1 = sample moving)
+SIO 0, 2, 1		// initialise output0 (1 = sample in position, 0 = sample moving)
 
 
 //Set motor motion parameters
@@ -52,7 +52,7 @@ loop:
 
 Inp0change:		//Motor move down
    DI 39					//Disable Interupt0 (prevents motor receiving signal twice)  
-   SIO 0, 2, 1					//Set Output0 low (sample moving)
+   SIO 0, 2, 0					//Set Output0 high (sample moving)
    SGP position, 2, 2			//Set sample position to 'in motion'
    GAP 0, 0						//Get current position
    CALCX LOAD					//Save current position to accumulator
@@ -61,13 +61,13 @@ Inp0change:		//Motor move down
    AAP 0, 0						//Set target position to accumulator value
    WAIT POS, 0, 0  			//Wait until motor in position.
    SGP position, 2, 0			//Set sample position to 'down'
-   SIO 0, 2, 0					//Set Output0 high (sample stationary)
+   SIO 0, 2, 1					//Set Output0 low (sample stationary)
    EI 40				//Enable Interupt0
    RETI							//Return to loop
 
 Inp1change:		//Motor move up
    DI 40					//Disable Interupt1 (prevents motor receiving signal twice)
-   SIO 0, 2, 1					//Set Output0 low (sample moving)
+   SIO 0, 2, 0					//Set Output0 high (sample moving)
    SGP position, 2, 2			//Set sample position to 'in motion'
    GAP 0, 0						//Get current position
    CALCX LOAD					//Save current position to accumulator
@@ -77,7 +77,7 @@ Inp1change:		//Motor move up
    AAP 0, 0						//Set target position to accumulator value
    WAIT POS, 0, 0			//Wait until motor in position.
    SGP position, 2, 1			//Set sample position to 'up'
-   SIO 0, 2, 0					//Set Output0 high (sample stationary)
+   SIO 0, 2, 1					//Set Output0 low (sample stationary)
    EI 39				//Enable Interupt0
    RETI							//Return to loop
 
