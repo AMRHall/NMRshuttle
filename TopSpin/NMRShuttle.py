@@ -1,12 +1,12 @@
 
 #
 # NMRshuttle.py
-# Version 2.1, Mar 2019
+# Version 2.2, Apr 2019
 #
 # Andrew Hall 2019 (c)
 # a.m.r.hall@soton.ac.uk
 #
-# Python script for controlling NMR low field shuttle with Trinamic TMCM-1060 or TMCM-1160 motor using TopSpin.
+# Python script for controlling NMR low field shuttle with Trinamic TMCM-1060 or TMCM-1160 motor.
 # Includes options for different NMR tubes and for arbitarily defined velocity/distance profiles.
 # Requires setup file containing motor parameters. Also requires PyTrinamic and Serial libraries.
 # Requires Python 3.6 or later.
@@ -36,21 +36,22 @@ a = setup.a                        # Magnetic field fitting parameter 1
 b = setup.b                        # Magnetic filed fitting parameter 2
 Circ = setup.circ		   # Circumference of spindle wheel (cm)
 NStep = setup.NStep                # Number of steps for one full revolution of motor
-speed = setup.speed		   # Default motor speed
-ramp = setup.ramp                  # Equation for velocity ramp
-accel = setup.accel		   # Default acceleration
+speed = float(sys.argv[6])	   # Motor speed
+accel = float(sys.argv[7])	   # Acceleration
+ramp = str(sys.argv[8])            # Equation for velocity ramp
 
-# Overide speed if user has set one in TopSpin
-if float(sys.argv[6]) > 1:
-  speed = int(sys.argv[6])
 
-# Overide acceleration if user has set one in TopSpin
-if float(sys.argv[7]) > 1:
-  accel = int(sys.argv[7])
+# Open communications with motor driver
+PyTrinamic.showInfo()
+PyTrinamic.showAvailableComPorts()
 
-# Overide ramp function if user has set one in TopSpin
-if sys.argv[8] != "None":
-  ramp = str(sys.argv[8])
+myInterface = serial_tmcl_interface(setup.serial)
+module = TMCM_1160(myInterface)
+
+# Reset all error flags
+errflag = 0
+module.setUserVariable(9,0)
+
 
 # Get operation mode
 mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep, 3 = Constant time
@@ -58,26 +59,29 @@ if mode != (1 or 2 or 3):
   print("Invalid value for operation mode.")
   sys.exit(0)
 
-# Get tube type
-type = int(sys.argv[2]) # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
-if type == 1:
+# Get tube type and fetch appropriate stall guard settings
+tubeType = int(sys.argv[2]) # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
+if tubeType == 1:
   stallGuard = NMRShuttleSetup.stallGuard_stan()
-elif type == 2:
+elif tubeType == 2:
   stallGuard = NMRShuttleSetup.stallGuard_HP5()
-elif type == 3:
+elif tubeType == 3:
   stallGuard = NMRShuttleSetup.stallGuard_HP10()
 else:
   print("Invalid value for tube type.")
   sys.exit(0)
 
-PyTrinamic.showInfo()
-PyTrinamic.showAvailableComPorts()
+	
+# Convert speed and acceleration from real units to motor units
+pulseDiv = module.axisParameter(154)
+uStepRes = module.axisParameter(140)
+fullStepRot = 200
+rampDiv = module.axisParameter(153)
 
-# For usb connection
-myInterface = serial_tmcl_interface(setup.serial)
-
-module = TMCM_1160(myInterface)
-
+speed = ((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))
+accel = ((accel/Circ) * fullStepRot * (2**uStepRes) * (2**(rampDiv + pulseDiv + 29)))/((16 * (10**6))**2)
+	
+	
 # Motor settings
 module.setMaxVelocity(setup.maxSpeed)
 module.setMaxAcceleration(accel)
@@ -88,24 +92,10 @@ module.stallguard2Filter(stallGuard.stallguard2Filter)
 module.stallguard2Threshold(stallGuard.stallguard2Threshold)
 module.stopOnStall(stallGuard.stopOnStall)
 
-
 if mode == 1 or mode == 3:
   module.setTargetSpeed(speed)
   print("\nTarget speed = " + str(speed))
 print("Acceleration = " + str(accel) + "\n")
-
-# Convert speed and acceleration from real units to motor units
-pulseDiv = module.axisParameter(154)
-uStepRes = module.axisParameter(140)
-fullStepRot = 200
-rampDiv = module.axisParameter(153)
-
-speed = ((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))
-accel = ((accel/Circ) * fullStepRot * (2**uStepRes) * (2**(rampDiv + pulseDiv + 29)))/((16 * (10**6))**2)
-	
-# Reset all error flags
-errflag = 0
-module.setUserVariable(9,0)
 
 
 # Fetch desired magnetic field strength (mT)
@@ -172,7 +162,8 @@ while m < TD:
 		if position == 2 and mode == 2:
 			currPosition = ((module.actualPosition()-startPosition)*-Circ)/NStep
 			currField = float(B0/(1+((currPosition/b)**a)))
-			speed = int(eval(ramp))
+			speed = float(eval(ramp))
+			speed = ((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))
 			module.setTargetSpeed(speed)
 		
 # Once sequence is complete for all magnetic field strengths:
