@@ -26,14 +26,14 @@ class NMRShuttle(object):
 
 
 
-  # Target motor speed (cm/s) (0...30.5)
+  # Target motor speed (cm/s) (0...30.5027)
   speed =             25
 
-  # Motor acceleration (cm/s^2) (0...465.4). This can be adapted by changing motor rampDiv setting
+  # Maximum motor acceleration (cm/s^2) (0...465.4). This can be adapted by changing motor rampDiv setting
   accel =             22.74
 
-  # Maximum motor speed (cm/s) (0...30.5). This can be adapted by changing motor pulDiv setting
-  maxSpeed =          2047
+  # Maximum motor speed (cm/s) (0...30.5027). This can be adapted by changing motor pulDiv setting
+  maxSpeed =          30.5027
 
   # Velocity ramp equation (as a function of field strength)
   ramp =              "100 + 5 * currField"
