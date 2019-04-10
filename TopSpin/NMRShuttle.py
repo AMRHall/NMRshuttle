@@ -1,4 +1,3 @@
-
 #
 # NMRshuttle.py
 # Version 2.2, Apr 2019
@@ -24,7 +23,7 @@ import datetime
 import math
 
 # Print information about script
-print("\n\nNMRshuttle_VBlist\nVersion 5\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
+print("\n\n\n\n\nNMRshuttle.py\nVersion 2.2\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
 
 # Import default values from setup file
 setup = NMRShuttleSetup.NMRShuttle()
@@ -47,6 +46,7 @@ PyTrinamic.showAvailableComPorts()
 
 myInterface = serial_tmcl_interface(setup.serial)
 module = TMCM_1160(myInterface)
+print("\n")
 
 # Reset all error flags
 errflag = 0
@@ -55,9 +55,6 @@ module.setUserVariable(9,0)
 
 # Get operation mode
 mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep, 3 = Constant time
-if mode != (1 or 2 or 3):
-  print("Invalid value for operation mode.")
-  sys.exit(0)
 
 # Get tube type and fetch appropriate stall guard settings
 tubeType = int(sys.argv[2]) # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
@@ -78,12 +75,12 @@ uStepRes = module.axisParameter(140)
 fullStepRot = 200
 rampDiv = module.axisParameter(153)
 
-speed = ((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))
-accel = ((accel/Circ) * fullStepRot * (2**uStepRes) * (2**(rampDiv + pulseDiv + 29)))/((16 * (10**6))**2)
-	
-	
+speed = int(((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
+maxSpeed = int(((setup.maxSpeed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
+accel = int(((accel/Circ) * fullStepRot * (2**uStepRes) * (2**(rampDiv + pulseDiv + 29)))/((16 * (10**6))**2))
+
 # Motor settings
-module.setMaxVelocity(setup.maxSpeed)
+module.setMaxVelocity(maxSpeed)
 module.setMaxAcceleration(accel)
 
 module.motorRunCurrent(stallGuard.motorRunCurrent)
@@ -94,13 +91,13 @@ module.stopOnStall(stallGuard.stopOnStall)
 
 if mode == 1 or mode == 3:
   module.setTargetSpeed(speed)
-  print("\nTarget speed = " + str(speed))
-print("Acceleration = " + str(accel) + "\n")
+  print("Target speed = " + str(speed))
+print("Acceleration = " + str(accel))
 
 
 # Fetch desired magnetic field strength (mT)
-BSample = int(sys.argv[3])
-print(str("\nMagnetic field strength = " + str(BSample) +  " mT"))
+BSample = float(sys.argv[3])
+print(str("Magnetic field strength = " + str(BSample) +  " mT"))
 
     
 # Calculate sample position needed to achieve this field strength
@@ -140,7 +137,7 @@ while m < TD:
 			print("\nEmergency stop detected. Aborting acquisition.")
 			errflag += 1
 			break
-		elif module.statusFlags != 0:       #Stall detected
+		elif module.statusFlags() != 0:       #Stall detected
 			print("\nStall detected. Aborting acquisition.")
 			errflag += 1
 			break
@@ -161,8 +158,7 @@ while m < TD:
 		if position == 2 and mode == 2:
 			currPosition = ((module.actualPosition()-startPosition)*-Circ)/NStep
 			currField = float(B0/(1+((currPosition/b)**a)))
-			speed = float(eval(ramp))
-			speed = ((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))
+			print(((float(eval(ramp))/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
 			module.setTargetSpeed(speed)
 		
 # Once sequence is complete for all magnetic field strengths:
