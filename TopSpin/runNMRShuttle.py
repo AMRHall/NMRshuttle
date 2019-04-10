@@ -20,8 +20,8 @@ import subprocess
 
 setup = NMRShuttleSetup.NMRShuttle()
 
-#Set directory to TopSpin python user library
-os.chdir("/opt/topspin3.5pl7/exp/stan/nmr/py/user")
+#Set TopSpin installation directory
+path = "/opt/topspin3.5pl7/"
 
 #Get parameters from TopSpin and NMRShuttleSetup.py
 mode = int(GETPAR("CNST 11"))
@@ -31,8 +31,8 @@ ns = int(GETPAR("NS"))
 dim = int(GETPAR("PARMODE"))
 motionTime = float(GETPAR("D 10"))
 
-if str(GETPAR("USERA 1")) != "None":
-  ramp = str(GETPAR("USERA 1"))
+if str(GETPAR("USERA1")) != "None":
+  ramp = str(GETPAR("USERA1"))
 else:
   ramp = setup.ramp
 
@@ -75,13 +75,16 @@ if mode == 1:
 	
 elif mode == 2:
 	print("\n\nVelocity sweep mode")
-	currField = 0
+	currField = setup.B0
 	motionTime = 0
-	while currField <= BSample:
-		dspeed = float(eval(ramp)) - dspeed
-		ddistance = float(setup.b*(((setup.B0/(0.01*BSample))-1)**(1/setup.a)))
-		motionTime += ddistance/dspeed
-		currField += (0.01*BSample)
+	avgSpeed = float(eval(ramp))
+	dDistance = 0
+	while currField >= BSample:
+		dDistance = float(setup.b*(((setup.B0/currField)-1)**(1/setup.a)))-dDistance
+		avgSpeed = float(eval(ramp))+avgSpeed
+		motionTime += 2*dDistance/avgSpeed
+		currField -= (0.01*(setup.B0-BSample))
+	PUTPAR("D 10",motionTime)
 	
 elif mode == 3:	
 	print("\n\nConstant time mode") 
@@ -116,11 +119,13 @@ if (speed < 0)  or (speed > setup.maxSpeed):
   
 
 	
-#Call NMRShuttle.py with arguments  
+#Call NMRShuttle.py with arguments 
+
 command = "python3.6 NMRShuttle.py "
-arguments = str(mode) + " " + str(tubeType) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + ramp
+arguments = str(mode) + " " + str(tubeType) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " '" + ramp + "'"
 
 print(command + arguments)
+os.chdir(path + "exp/stan/nmr/py/user")
 subprocess.Popen(command + arguments, shell=True)
 
 
