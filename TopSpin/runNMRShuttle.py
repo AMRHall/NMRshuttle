@@ -71,7 +71,7 @@ if mode == 1:
 		motionTime = 2 * math.sqrt(distance/accel)
 	else:
 		motionTime = 2 * (speed/accel) + (distance - accel*((speed/accel)**2))/speed
-	PUTPAR("D 10",motionTime)
+	PUTPAR("D 10",str(motionTime))
 	
 elif mode == 2:
 	print("\n\nVelocity sweep mode")
@@ -84,7 +84,7 @@ elif mode == 2:
 		avgSpeed = float(eval(ramp))+avgSpeed
 		motionTime += 2*dDistance/avgSpeed
 		currField -= (0.01*(setup.B0-BSample))
-	PUTPAR("D 10",motionTime)
+	PUTPAR("D 10",str(motionTime))
 	
 elif mode == 3:	
 	print("\n\nConstant time mode") 
@@ -94,6 +94,7 @@ elif mode == 3:
 		EXIT()
 	else:
 		speed = 0.5 * (accel * motionTime - math.sqrt(accel) * math.sqrt(-4 * distance + accel * motionTime**2))
+	PUTPAR("CNST 30",str(speed))
 else:
   ERRMSG("Invalid value for operation mode (CNST11).", modal=1, title="NMR Shuttle Error")
   ct = XCMD("STOP")
