@@ -136,12 +136,11 @@ while m < TD:
 	m += 1
 	while n < NS:	
 		# Check for errors in motor
-		error = module.userVariable(9)
-		if error == 1:		#Shutdown error from light gate
+		if module.digitalInput(10) == 0:		#Shutdown error from light gate
 			print("\nEmergency stop detected. Aborting acquisition.")
 			errflag += 1
 			break
-		elif error == 2:       #Stall detected
+		elif module.statusFlags != 0:       #Stall detected
 			print("\nStall detected. Aborting acquisition.")
 			errflag += 1
 			break
