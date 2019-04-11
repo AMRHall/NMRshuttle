@@ -14,7 +14,7 @@ define delay d1p180
 1 ze
 
 define delay dmot
-"dmot = vd - d10*2 + (cnst11 + cnst12 + cnst20 + cnst30 + cnst31)*0"
+"dmot = vd - (d10*2 + cnst11 + cnst12 + cnst20 + cnst30 + cnst31)*0"
 
 2 d7
 
@@ -47,7 +47,7 @@ define delay dmot
 1u setnmr3^8
 
 ; execute variable delay
-vd
+dmot
 
 ; move sample back to high field
 1u setnmr3|9
@@ -94,8 +94,6 @@ go=2 ph31
 30m wr #0 if #0 zd ivd
 lo to 1 times td1
 exit
-
-dmot
 
 ph0 = 0 0 2 2 0 0 2 2 2 2 0 0 2 2 0 0 
 ph1 = 1 1 3 3 1 1 3 3 3 3 1 1 3 3 1 1
