@@ -26,25 +26,11 @@ If no error messages are given, the installation was a success.
 
 
 
-### 2.2. Install Git
+
+### 2.2. Install motor driver
 Enter the following command into the terminal window:
 
-`python3.6 -m pip install --user gitpython`
-
-##### To check if the installation has succeeded:  
-`python3.6`  
-`import git`
-
-If no error messages are given, the installation was a success.
-
-`exit()`
-
-
-
-### 2.3. Install motor driver
-Enter the following command into the terminal window:
-
-`python3.6 -m pip install --user git+https://github.com/AMRHall/PyTrinamic`
+`python3.6 -m pip install --user PyTrinamic`
 
 ##### To check if the installation has succeeded:  
 `python3.6`  
