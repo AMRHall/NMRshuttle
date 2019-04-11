@@ -77,11 +77,11 @@ elif mode == 2:
 	print("\n\nVelocity sweep mode")
 	currField = setup.B0
 	motionTime = 0
-	avgSpeed = float(eval(ramp))
+	avgSpeed = (((speed*float(eval(ramp)))/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))
 	dDistance = 0
 	while currField >= BSample:
 		dDistance = float(setup.b*(((setup.B0/currField)-1)**(1/setup.a)))-dDistance
-		avgSpeed = float(eval(ramp))+avgSpeed
+		avgSpeed = (((speed*float(eval(ramp)))/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))+avgSpeed
 		motionTime += 2*dDistance/avgSpeed
 		currField -= (0.01*(setup.B0-BSample))
 	PUTPAR("D 10",str(motionTime))
