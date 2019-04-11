@@ -12,7 +12,7 @@ If Python 3.6 is installed then the version number should be displayed. If Pytho
 ### 2.1. Install Pyserial
 Enter the following command into the terminal window:
 
-`python3.6 pip install --user PySerial`
+`python3.6 -m pip install --user PySerial`
 
 (Note that this will only install for the current user. To install for all users, root permisions are required)
 
@@ -29,7 +29,7 @@ If no error messages are given, the installation was a success.
 ### 2.2. Install Git
 Enter the following command into the terminal window:
 
-`python3.6 pip install --user gitpython`
+`python3.6 -m pip install --user gitpython`
 
 ##### To check if the installation has succeeded:  
 `python3.6`  
@@ -44,7 +44,7 @@ If no error messages are given, the installation was a success.
 ### 2.3. Install motor driver
 Enter the following command into the terminal window:
 
-`python3.6 pip install --user git+https://github.com/AMRHall/PyTrinamic`
+`python3.6 -m pip install --user git+https://github.com/AMRHall/PyTrinamic`
 
 ##### To check if the installation has succeeded:  
 `python3.6`  
@@ -73,18 +73,9 @@ Go to File > Import and from the folder that you have just downloaded select the
 
 Import these files into TopSpin.
 
-Open the file named `runNMRShuttle.py` and check that the file path on line 8 matches the location that you have just saved the files to.
+Open the file named `runNMRShuttle.py` and check that the file path on line 24 matches the location of the TopSpin installation on your computer.
 
-### 3.3. Install AU program
-In TopSpin enter the command `edau` to go to the automation program library.
-
-Go to File > Import and from the folder that you have just downloaded select the file named:
-
-`zg_xpya`
-
-Import the file into TopSpin.
-
-### 3.4. Install pulse program
+### 3.3. Install pulse program
 In TopSpin enter the command `edpul` to go to the pulse program library.
 
 Go to File > Import and from the folder that you have just downloaded select the file named:
@@ -97,7 +88,7 @@ Import the file into TopSpin.
 ### 4.1. Electrical connections
 The NMRShuttle uses the spectrometer output TTL lines 8 and 9, located on pins C3 and C4 (AVANCE III) for triggering the motor. If different pins are used for triggering, simply change the pulse program accordingly.
 
-A return signal that indicates when the motor is moving is currently located on spectrometer input0 (pin C5 on AVANCE III).
+A return signal that indicates when the motor is moving is currently located on spectrometer Input1 (pin C6 on AVANCE III).
 
 ### 4.2. Motor settings
 Settings for the motor are stored in the `NMRShuttleSetup.py` file that you saved in the TopSpin python libary. This file contains parameters for the maximum and target speed, acceleration, communication port, maximum allowed height, StallGuard settings, motor wheel circumference and velocity ramp equation.
@@ -107,12 +98,10 @@ The setup file also includes parameters describing the magnetic field strength p
 BSample = B0/(1+(x/b)^a)
 
 ### 4.3. Pulse program
-The pulse program must include trigger out signals to tell the motor when to move up and down. The motor triggers when the pin is set low. As the motor takes a finite amount of time to move into position, it is advisable to include a delay of around 5 seconds to allow the motor to reach the correct position.
+The pulse program must include trigger out signals to tell the motor when to move up and down. The motor triggers when the pin is set low. The motor sends a return signal once it has completed the sample motion, which may be used as a trigger in signal to make the pulse program wait until the motor movement is complete before continuing. As the motor takes a finite amount of time to move into position, it is advisable to include a buffer of around 1 second to allow the sample to fully engage in the probe before acquiring data (D11 in the pulse program).
 
 ### 4.4. Acquisition parameters
 * The acquisition python program (PYNM) must be set to `runNMRShuttle.py`.
-
-* The acqusition automation program (AUNM) must be set to `zg_xpya`.
 
 The following constants are also used to set parameters within the NMRShuttle program:
 
@@ -126,18 +115,19 @@ The following constants are also used to set parameters within the NMRShuttle pr
 | CNST 30    | 0.05...30.| Specify target speed (cm/s) (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
 | CNST 31    | 0.5...465| Specify acceleration (cm/s^2) (optional). If no value is set (= 0 or 1) then the default value from the NMRShuttleSetup.py file will be taken.|
 | D10    | 0...&#8734;| Sample motion time (s). Used in pulse program and constant time mode. |
+| D11    | 0...&#8734;| Sample positioning buffer (s). Used in pulse program to ensure that sample has time to fully engage in probe before acquiring data. |
 | USERA 1    | String | Velocity ramp equation (arbitary). Given as a function of magnetic field strength 'currField'. |
 
 ### 4.5. Acquisition modes
 The NMRShuttle can operate in three different modes:
-1. Constant velocity (default): The sample is accelerated up to the target velocity set either in the NMRShuttleSetup file or CNST 30. The time taken to move the sample is dependant on the distance being traveled (and therefore on field strength).
-2. Velocity sweep: This allows the user to set an arbitary equation relating the sample speed to the local field strength that the sample experiences at each point in the magnet. The sample speed follows a profile that is set using the ramp equation either in the setup file or the USERA1 parameter (the USERA1 parameter will override the equation given in the setup file). This should be of the form:
-speed = `function[currField]` 
-for example:
-`25/(1+math.exp(0.002 * (currField-5000)))`
-which describes a sigmoidal curve where the sample moves slowly at high field and quickly at low field, with a maximum speed of 25 cm/s and half-maximum speed at 5000 mT.
+1. Constant velocity (default): The sample is accelerated up to the target velocity set either in the NMRShuttleSetup file or CNST 30. The time taken to move the sample is dependant on the distance being traveled (and therefore on field strength), and is calculated automatically when running the program and stored in TopSpin delay D10.
+2. Velocity sweep: This allows the user to set an arbitary equation relating the sample speed as a fraction of the target speed to the local field strength that the sample experiences at each point in the magnet. The sample speed follows a profile that is set using the ramp equation either in the setup file or the USERA1 parameter (the USERA1 parameter will override the equation given in the setup file). The equation should be in python maths format and use the variable 'currField' for the local field strength experienced by the sample at a given position in the magnet:  
+Target speed at local field strength 'currField' = `function[currField]`  
+for example:  
+`1-0.9/(1+math.exp(-0.001*(currField-5000)))`  
+which describes a sigmoidal curve where the sample moves slowly at high field and quickly at low field, reaching a maximum speed set using the target speed (either in the NMRShuttleSetup file or CNST 30) and half-maximum speed at 5000 mT. The time taken for the velocity ramp to complete is estimated automatically when running the program and stored in TopSpin delay D10.
 
-3. Constant speed: The time taken for the sample motion to complete remains constant over all field strengths, however the sample velocity will change depending on the distance that must be moved. The sample motion time may be set using parameter D10. If the time set in D10 is too short to allow the sample motion to complete then an error message will be displayed and the experiment will not run.
+3. Constant speed: The time taken for the sample motion to complete remains constant over all field strengths, however the sample velocity will change depending on the distance that must be moved. The sample motion time may be set using parameter D10. If the time set in D10 is too short to allow the sample motion to complete then an error message will be displayed and the experiment will not run. The target speed calculated by the program is stored in TopSpin parameter CNST30.
 
 ### 4.6. Starting the experiment
-The NMR experiment must be started by calling the `zg_xpya` automation program, either directly by name, or using the `xaua` command. If you wish to queue multiple experiments, then the `multizg` program can be modified by replacing `zg` with `xaua` in the `multizg` program.
+The NMR experiment must be started by calling the `runNMRShuttle.py` program, either directly by name, or using the `xpya` command if the python program has been set in the TopSpin acquisition parameters. If you wish to queue multiple experiments, then the `multizg` program can be modified by replacing `zg` with `xpya` in the `multizg` program.
