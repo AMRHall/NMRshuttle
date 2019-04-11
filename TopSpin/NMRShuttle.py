@@ -23,7 +23,7 @@ import datetime
 import math
 
 # Print information about script
-print("\n\n\n\n\nNMRshuttle.py\nVersion 2.2\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
+print("NMRshuttle.py\nVersion 2.2\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
 
 # Import default values from setup file
 setup = NMRShuttleSetup.NMRShuttle()
@@ -126,7 +126,7 @@ TD = int(sys.argv[5])
   
 # Check position of sample and wait until finished
 up = 'n'
-startPosition = module.actualPosition()
+module.setActualPosition(0)
 m = 0
 while m < TD:
 	n = 0
@@ -156,10 +156,10 @@ while m < TD:
 			else:
 				print(str("Completed scan " + str(n) + "/" + str(NS) + " for 2D slice " + str(m) + "/" + str(TD) + " at magnetic field strength of " + str(BSample) + " mT\n"))
 		if position == 2 and mode == 2:
-			currPosition = ((module.actualPosition()-startPosition)*-Circ)/NStep
+			currPosition = (module.actualPosition()*(-Circ))/NStep
 			currField = float(B0/(1+((currPosition/b)**a)))
-			print(((float(eval(ramp))/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
-			module.setTargetSpeed(speed)
+			rampSpeed = int(eval(ramp))
+			module.setTargetSpeed(rampSpeed)
 		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
