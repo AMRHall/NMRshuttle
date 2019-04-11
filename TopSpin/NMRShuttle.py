@@ -158,7 +158,7 @@ while m < TD:
 		if position == 2 and mode == 2:
 			currPosition = (module.actualPosition()*(-Circ))/NStep
 			currField = float(B0/(1+((currPosition/b)**a)))
-			rampSpeed = int(eval(ramp))
+			rampSpeed = int(speed*eval(ramp))
 			module.setTargetSpeed(rampSpeed)
 		
 # Once sequence is complete for all magnetic field strengths:
