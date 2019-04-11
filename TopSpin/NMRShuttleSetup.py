@@ -36,7 +36,7 @@ class NMRShuttle(object):
   maxSpeed =          30.5027
 
   # Velocity ramp equation (as a function of field strength)
-  ramp =              "100 + 5 * currField"
+  ramp =              "speed*(1-0.9/(1+math.exp(-0.001*(currField-5000))))"
 
 
 
