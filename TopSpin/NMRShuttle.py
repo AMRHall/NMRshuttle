@@ -147,6 +147,10 @@ while m < TD:
 		if up == 'n' and position == 1:
 			up = 'y'
 			print("Sample up.")
+			startTime = time.time()
+		if up == 'y' and position == 1:
+			elapsedTime = int(time.time() - startTime)
+			print('\rElapsed time = ' + str(elapsedTime), end = '')
 		if up == 'y' and position == 0:
 			up = 'n'
 			n += 1
@@ -160,6 +164,7 @@ while m < TD:
 			currField = float(B0/(1+((currPosition/b)**a)))
 			rampSpeed = int(speed*eval(ramp))
 			module.setTargetSpeed(rampSpeed)
+			print('\rSpeed =' + str(module.actualSpeed), end = '')
 		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
