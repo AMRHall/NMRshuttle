@@ -75,15 +75,27 @@ if mode == 1:
 	
 elif mode == 2:
 	print("\n\nVelocity sweep mode")
-	currField = setup.B0
 	motionTime = 0
 	avgSpeed = (((speed*float(eval(ramp)))/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))
 	dDistance = 0
-	while currField >= BSample:
-		dDistance = float(setup.b*(((setup.B0/currField)-1)**(1/setup.a)))-dDistance
-		avgSpeed = (((speed*float(eval(ramp)))/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))+avgSpeed
-		motionTime += 2*dDistance/avgSpeed
-		currField -= (0.01*(setup.B0-BSample))
+	if ramp.find('currField') != -1:
+		currField = setup.B0
+		while currField >= BSample:
+			dDistance = float(setup.b*(((setup.B0/currField)-1)**(1/setup.a)))-dDistance
+			avgSpeed = (((speed*float(eval(ramp)))/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))+avgSpeed
+			motionTime += 2*dDistance/avgSpeed
+			currField -= (0.01*(setup.B0-BSample))
+	if ramp.find('currPosition') != -1:
+		currPosition = 0
+		while currPosition <= distance:
+			dDistance = currPosition-dDistance
+			avgSpeed = (((speed*float(eval(ramp)))/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))+avgSpeed
+			motionTime += 2*dDistance/avgSpeed
+			currPosition += 0.01*distance
+	else:
+		ERRMSG("Invalid equation for velocity sweep ramp.\nEquation must be expressed in terms of sample position (currPosition) or local field strength (currField).", modal=1, title="NMR Shuttle Error")
+		ct = XCMD("STOP")
+		EXIT()
 	PUTPAR("D 10",str(motionTime))
 	
 elif mode == 3:	
