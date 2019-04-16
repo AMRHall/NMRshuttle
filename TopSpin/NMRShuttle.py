@@ -146,7 +146,7 @@ while m < TD:
 		position = module.userVariable(8)
 		if up == 'n' and position == 1:
 			up = 'y'
-			print("Sample up.")
+			print("\nSample up.")
 			startTime = time.time()
 		if up == 'y' and position == 1:
 			elapsedTime = int(time.time() - startTime)
@@ -154,17 +154,17 @@ while m < TD:
 		if up == 'y' and position == 0:
 			up = 'n'
 			n += 1
-			print("Sample down.")
+			print("\nSample down.")
 			if TD == 1:
-				print(str("Completed scan " + str(n) + " of " + str(NS) + " at magnetic field strength of " + str(BSample) + " mT\n"))
+				print(str("Completed scan " + str(n) + " of " + str(NS) + " at magnetic field strength of " + str(BSample) + " mT"))
 			else:
-				print(str("Completed scan " + str(n) + "/" + str(NS) + " for 2D slice " + str(m) + "/" + str(TD) + " at magnetic field strength of " + str(BSample) + " mT\n"))
+				print(str("Completed scan " + str(n) + "/" + str(NS) + " for 2D slice " + str(m) + "/" + str(TD) + " at magnetic field strength of " + str(BSample) + " mT"))
 		if position == 2 and mode == 2:
 			currPosition = (module.actualPosition()*(-Circ))/NStep
 			currField = float(B0/(1+((currPosition/b)**a)))
 			rampSpeed = int(speed*eval(ramp))
 			module.setTargetSpeed(rampSpeed)
-			print('\rSpeed =' + str(module.actualSpeed), end = '')
+			print('\rSpeed =' + str(rampSpeed), end = '')
 		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
@@ -175,7 +175,7 @@ timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%
 if errflag ==0:
 	print(str("\nSequence successfully completed at " + str(timestamp)))
 else:
-	print(str("Sequence aborted with " + str(errflag) + " error(s) at " + str(timestamp) + "\n"))
+	print(str("\nSequence aborted with " + str(errflag) + " error(s) at " + str(timestamp) + "\n"))
 
 # Close serial port
 myInterface.close()
