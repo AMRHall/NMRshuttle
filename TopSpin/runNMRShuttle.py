@@ -31,7 +31,8 @@ ns = int(GETPAR("NS"))
 dim = int(GETPAR("PARMODE"))
 motionTime = float(GETPAR("D 10"))
 
-if str(GETPAR("USERA1")) != "None":
+
+if str(GETPAR("USERA1")) != "":
   ramp = str(GETPAR("USERA1"))
 else:
   ramp = setup.ramp
@@ -76,20 +77,20 @@ if mode == 1:
 elif mode == 2:
 	print("\n\nVelocity sweep mode")
 	motionTime = 0
-	avgSpeed = (((speed*float(eval(ramp)))/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))
+	currField = setup.B0
+	currPosition = 0
+	avgSpeed = ((speed*float(eval(ramp)))/setup.circ)
 	dDistance = 0
-	if ramp.find('currField') != -1:
-		currField = setup.B0
+	if ramp.find("currField") != -1:
 		while currField >= BSample:
 			dDistance = float(setup.b*(((setup.B0/currField)-1)**(1/setup.a)))-dDistance
-			avgSpeed = (((speed*float(eval(ramp)))/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))+avgSpeed
+			avgSpeed = ((speed*float(eval(ramp)))/setup.circ) + avgSpeed
 			motionTime += 2*dDistance/avgSpeed
 			currField -= (0.01*(setup.B0-BSample))
-	if ramp.find('currPosition') != -1:
-		currPosition = 0
+	elif ramp.find('currPosition') != -1:
 		while currPosition <= distance:
 			dDistance = currPosition-dDistance
-			avgSpeed = (((speed*float(eval(ramp)))/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6))+avgSpeed
+			avgSpeed = ((speed*float(eval(ramp)))/setup.circ) + avgSpeed
 			motionTime += 2*dDistance/avgSpeed
 			currPosition += 0.01*distance
 	else:
