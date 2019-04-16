@@ -1,6 +1,6 @@
 #
 # NMRshuttle.py
-# Version 2.2, Apr 2019
+# Version 2.3, Apr 2019
 #
 # Andrew Hall 2019 (c)
 # a.m.r.hall@soton.ac.uk
@@ -23,7 +23,7 @@ import datetime
 import math
 
 # Print information about script
-print("NMRshuttle.py\nVersion 2.2\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
+print("NMRshuttle.py\nVersion 2.3\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
 
 # Import default values from setup file
 setup = NMRShuttleSetup.NMRShuttle()
@@ -125,8 +125,7 @@ NS = int(sys.argv[4])
 TD = int(sys.argv[5])
   
 # Check position of sample and wait until finished
-up = 'n'
-module.setActualPosition(0)
+up = False
 m = 0
 while m < TD:
 	n = 0
@@ -144,15 +143,16 @@ while m < TD:
 	
 		#Check sample position
 		position = module.userVariable(8)
-		if up == 'n' and position == 1:
-			up = 'y'
+		if up == False and position == 1:
+			up = True
 			print("\nSample up.")
 			startTime = time.time()
-		if up == 'y' and position == 1:
+		if up == True and position == 1:
 			elapsedTime = int(time.time() - startTime)
-			print('\rElapsed time = ' + str(elapsedTime), end = '')
-		if up == 'y' and position == 0:
-			up = 'n'
+			print('\rElapsed time = ' + str(elapsedTime), end = ' ')
+			newLine = True
+		if up == True and position == 0:
+			up = False
 			n += 1
 			print("\nSample down.")
 			if TD == 1:
@@ -160,11 +160,14 @@ while m < TD:
 			else:
 				print(str("Completed scan " + str(n) + "/" + str(NS) + " for 2D slice " + str(m) + "/" + str(TD) + " at magnetic field strength of " + str(BSample) + " mT"))
 		if position == 2 and mode == 2:
+			if newLine == True:
+				print('')
+				newLine = False
 			currPosition = (module.actualPosition()*(-Circ))/NStep
 			currField = float(B0/(1+((currPosition/b)**a)))
 			rampSpeed = int(speed*eval(ramp))
 			module.setTargetSpeed(rampSpeed)
-			print('\rSpeed =' + str(rampSpeed), end = '')
+			print('\rTarget speed =' + str(rampSpeed), end = ' ')
 		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
