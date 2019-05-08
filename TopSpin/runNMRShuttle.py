@@ -95,7 +95,6 @@ elif mode == 2:
 			currPosition += 0.01*distance
 	else:
 		ERRMSG("Invalid equation for velocity sweep ramp.\nEquation must be expressed in terms of sample position (currPosition) or local field strength (currField).", modal=1, title="NMR Shuttle Error")
-		ct = XCMD("STOP")
 		EXIT()
 	PUTPAR("D 10",str(motionTime))
 	
@@ -103,14 +102,12 @@ elif mode == 3:
 	print("\n\nConstant time mode") 
 	if 4 * distance > accel * (motionTime**2):
 		ERRMSG("Speed out of range! (CNST30)\nIncrease the sample motion time (D10).", modal=1, title="NMR Shuttle Error")
-		ct = XCMD("STOP")
 		EXIT()
 	else:
 		speed = 0.5 * (accel * motionTime - math.sqrt(accel) * math.sqrt(-4 * distance + accel * motionTime**2))
 	PUTPAR("CNST 30",str(speed))
 else:
   ERRMSG("Invalid value for operation mode (CNST11).", modal=1, title="NMR Shuttle Error")
-  ct = XCMD("STOP")
   EXIT()
 
 
@@ -123,12 +120,10 @@ elif tubeType == 3:
 	print("10mm high pressure tube")
 else:
 	ERRMSG("Invalid value for tube type (CNST12).", modal=1, title="NMR Shuttle Error")
-	ct = XCMD("STOP")
 	EXIT()
 	
 if (speed < 0)  or (speed > setup.maxSpeed):
   ERRMSG("Speed out of range! (CNST30)\nIf using constant time mode, consider increasing the sample motion time (D10).", modal=1, title="NMR Shuttle Error")
-  ct = XCMD("STOP")
   EXIT()
   
 
@@ -139,9 +134,19 @@ command = "python3.6 NMRShuttle.py "
 arguments = str(mode) + " " + str(tubeType) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " '" + ramp + "'"
 
 print(command + arguments)
-os.chdir(path + "exp/stan/nmr/py/user")
-subprocess.Popen(command + arguments, shell=True)
-
+proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
 
 #Start acquisition
 ct = XCMD("ZG")
+
+#Send terminate command to motor if acqusition fails
+if ct.getResult() == -1:
+	proc.send_signal(signal.SIGTERM)
+
+#Abort acquisition if motor returns an error
+return_code = proc.wait()
+if return_code == 0:
+  ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
+else:
+  ct = XCMD("STOP")
+  ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
