@@ -21,6 +21,14 @@ from PyTrinamic.modules.TMCM_1160 import TMCM_1160
 import time
 import datetime
 import math
+import signal
+
+# Define what to do if terminate signal recieved from Topspin
+def terminate(signal,frame):
+	timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+	print(str("\nSequence terminated by Topspin at " + str(timestamp)))
+	myInterface.close()
+	sys.exit(-1)
 
 # Print information about script
 print("NMRshuttle.py\nVersion 2.3\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
@@ -140,6 +148,9 @@ while m < TD:
 			print("\nStall detected. Aborting acquisition.")
 			errflag += 1
 			break
+			
+		#If terminate signal recieved from Topspin, safely stop motor
+		signal.signal(signal.SIGTERM, terminate)
 	
 		#Check sample position
 		position = module.userVariable(8)
@@ -182,3 +193,5 @@ else:
 
 # Close serial port
 myInterface.close()
+
+sys.exit(errflag)
