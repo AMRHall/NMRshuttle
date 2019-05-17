@@ -83,15 +83,21 @@ elif mode == 2:
 	dDistance = 0
 	if ramp.find("currField") != -1:
 		while currField >= BSample:
-			dDistance = float(setup.b*(((setup.B0/currField)-1)**(1/setup.a)))-dDistance
-			avgSpeed = ((speed*float(eval(ramp)))/setup.circ) + avgSpeed
-			motionTime += 2*dDistance/avgSpeed
+			lastPosition = currPosition
+			currPosition = float(setup.b*(((setup.B0/currField)-1)**(1/setup.a))) 
+			dDistance = currPosition - lastPosition
+			lastSpeed = currSpeed
+			currSpeed = speed*float(eval(ramp))
+			avgSpeed = (currSpeed + lastSpeed)/2
+			motionTime += dDistance/avgSpeed
 			currField -= (0.01*(setup.B0-BSample))
 	elif ramp.find('currPosition') != -1:
 		while currPosition <= distance:
-			dDistance = currPosition-dDistance
-			avgSpeed = ((speed*float(eval(ramp)))/setup.circ) + avgSpeed
-			motionTime += 2*dDistance/avgSpeed
+			dDistance = 0.01*distance
+			lastSpeed = currSpeed
+			currSpeed = speed*float(eval(ramp))
+			avgSpeed = (currSpeed + lastSpeed)/2
+			motionTime += dDistance/avgSpeed
 			currPosition += 0.01*distance
 	else:
 		ERRMSG("Invalid equation for velocity sweep ramp.\nEquation must be expressed in terms of sample position (currPosition) or local field strength (currField).", modal=1, title="NMR Shuttle Error")
