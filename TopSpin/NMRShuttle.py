@@ -110,7 +110,7 @@ print(str("Magnetic field strength = " + str(BSample) +  " mT"))
     
 # Calculate sample position needed to achieve this field strength
 dist = float(b*(((B0/BSample)-1)**(1/a)))
-print(str("Height = " + str(dist) + " cm"))
+print(str("Height = " + str(round(dist,2)) + " cm"))
 
     
 # Error if sample position too high or too low
@@ -134,6 +134,7 @@ TD = int(sys.argv[5])
   
 # Check position of sample and wait until finished
 up = False
+newLine = False
 m = 0
 while m < TD:
 	n = 0
@@ -159,7 +160,7 @@ while m < TD:
 			print("\nSample up.")
 			startTime = time.time()
 		if up == True and position == 1:
-			elapsedTime = int(time.time() - startTime)
+			elapsedTime = round(time.time() - startTime,1)
 			print('\rElapsed time = ' + str(elapsedTime), end = ' ')
 			newLine = True
 		if up == True and position == 0:
@@ -170,6 +171,8 @@ while m < TD:
 				print(str("Completed scan " + str(n) + " of " + str(NS) + " at magnetic field strength of " + str(BSample) + " mT"))
 			else:
 				print(str("Completed scan " + str(n) + "/" + str(NS) + " for 2D slice " + str(m) + "/" + str(TD) + " at magnetic field strength of " + str(BSample) + " mT"))
+			if mode == 2:
+				print("\n")
 		if position == 2 and mode == 2:
 			if newLine == True:
 				print('')
@@ -178,7 +181,7 @@ while m < TD:
 			currField = float(B0/(1+((currPosition/b)**a)))
 			rampSpeed = int(speed*eval(ramp))
 			module.setTargetSpeed(rampSpeed)
-			print('\rTarget speed =' + str(rampSpeed), end = ' ')
+			print('\rTarget speed = ' + str(rampSpeed), end = ' ')
 		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
