@@ -1,4 +1,3 @@
-
 #
 # runNMRShuttle.py
 # Version 1.2, Apr 2019
@@ -79,7 +78,7 @@ elif mode == 2:
 	motionTime = 0
 	currField = setup.B0
 	currPosition = 0
-	avgSpeed = ((speed*float(eval(ramp)))/setup.circ)
+	currSpeed = speed*float(eval(ramp))
 	dDistance = 0
 	if ramp.find("currField") != -1:
 		while currField >= BSample:
@@ -144,6 +143,7 @@ proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", 
 
 #Start acquisition
 ct = XCMD("ZG")
+
 
 #Send terminate command to motor if acqusition fails
 if ct.getResult() == -1:
