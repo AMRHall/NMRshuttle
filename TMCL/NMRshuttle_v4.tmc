@@ -94,5 +94,7 @@ Error:
 Reset:
    CLE ALL			         //Clear all error flags
    SGP dist, 2, 0	         // set initial value for upward motion to zero
+   SGP position, 2, 0      // set initial value for sample position to 'down'
+   SAP 1, 0                // set actual motor position value to zero
    EI 40				         //Enable trigger input 1
    JA loop			         //Return to loop
