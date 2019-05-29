@@ -76,7 +76,14 @@ else:
   print("Invalid value for tube type.")
   sys.exit(0)
 
-	
+# Motor settings
+module.motorRunCurrent(stallGuard.motorRunCurrent)
+module.motorStandbyCurrent(stallGuard.motorStandbyCurrent)
+module.stallguard2Filter(stallGuard.stallguard2Filter)
+module.stallguard2Threshold(stallGuard.stallguard2Threshold)
+module.stopOnStall(stallGuard.stopOnStall)
+module.setAxisParameter(154,setup.pulDiv)
+
 # Convert speed and acceleration from real units to motor units
 pulseDiv = module.axisParameter(154)
 uStepRes = module.axisParameter(140)
@@ -87,15 +94,10 @@ speed = int(((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 *
 maxSpeed = int(((setup.maxSpeed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
 accel = int(((accel/Circ) * fullStepRot * (2**uStepRes) * (2**(rampDiv + pulseDiv + 29)))/((16 * (10**6))**2))
 
-# Motor settings
 module.setMaxVelocity(maxSpeed)
 module.setMaxAcceleration(accel)
 
-module.motorRunCurrent(stallGuard.motorRunCurrent)
-module.motorStandbyCurrent(stallGuard.motorStandbyCurrent)
-module.stallguard2Filter(stallGuard.stallguard2Filter)
-module.stallguard2Threshold(stallGuard.stallguard2Threshold)
-module.stopOnStall(stallGuard.stopOnStall)
+
 
 if mode == 1 or mode == 3:
   module.setTargetSpeed(speed)
@@ -151,7 +153,7 @@ while m < TD:
 			break
 			
 		#If terminate signal recieved from Topspin, safely stop motor
-		signal.signal(signal.SIGTERM, terminate)
+		signal.signal(1, terminate)
 	
 		#Check sample position
 		position = module.userVariable(8)
