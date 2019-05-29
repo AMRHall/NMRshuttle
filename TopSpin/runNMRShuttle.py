@@ -128,8 +128,9 @@ else:
 	EXIT()
 	
 if (speed < 0)  or (speed > setup.maxSpeed):
-  ERRMSG("Speed out of range! (CNST30)\nIf using constant time mode, consider increasing the sample motion time (D10).", modal=1, title="NMR Shuttle Error")
-  EXIT()
+  value = SELECT(message = "Speed out of range! (CNST30)\nIf using constant time mode, consider increasing the sample motion time (D10).", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
+  if value == 1 or value < 0:
+  	EXIT()
   
 
 	
