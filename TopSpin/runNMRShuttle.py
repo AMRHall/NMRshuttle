@@ -46,9 +46,10 @@ if GETPAR("CNST 31") != "1":
 else:
   accel = setup.accel
 if (accel < 0)  or (accel > 465.434):
-  ERRMSG("Acceleration out of range! (CNST31)", modal=1, title="NMR Shuttle Error")
-  ct = XCMD("STOP")
-  EXIT()
+  value = SELECT(message = "Acceleration out of range! (CNST31)", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
+  if value == 1 or value < 0:
+  	ct = XCMD("STOP")
+  	EXIT()
 
 if dim == 0:
   td = "1"
