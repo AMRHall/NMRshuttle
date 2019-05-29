@@ -38,6 +38,18 @@ class NMRShuttle(object):
   # Velocity ramp equation (as a function of field strength)
   ramp =              "1-0.9/(1+math.exp(-0.001*(currField-5000)))"
 
+  
+  
+  
+'''
+*****************************
+THE FOLLOWING PARAMETERS CAN BE DANGEROUS IF CHANGED. DO NOT ALTER THEM UNLESS YOU KNOW WHAT YOU ARE DOING!
+*****************************
+'''
+
+  # Motor pulse division (0...13). DO NOT CHANGE THIS NUMBER UNLESS YOU HAVE READ THE MANUAL! 
+  # Changes maximum speed of motor. Decreasing the number increases speed, but compromises precision.
+  pulDiv =          1
 
 
 class stallGuard_stan(object):
