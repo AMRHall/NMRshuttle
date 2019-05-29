@@ -41,15 +41,13 @@ class NMRShuttle(object):
   
   
   
-'''
-*****************************
-THE FOLLOWING PARAMETERS CAN BE DANGEROUS IF CHANGED. DO NOT ALTER THEM UNLESS YOU KNOW WHAT YOU ARE DOING!
-*****************************
-'''
+# *****************************
+# THE FOLLOWING PARAMETERS CAN BE DANGEROUS IF CHANGED. DO NOT ALTER THEM UNLESS YOU KNOW WHAT YOU ARE DOING!
+# *****************************
 
   # Motor pulse division (0...13). DO NOT CHANGE THIS NUMBER UNLESS YOU HAVE READ THE MANUAL! 
   # Changes maximum speed of motor. Decreasing the number increases speed, but compromises precision.
-  pulDiv =          1
+  pulDiv =          3
 
 
 class stallGuard_stan(object):
