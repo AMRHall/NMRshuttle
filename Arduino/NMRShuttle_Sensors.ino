@@ -42,10 +42,12 @@ Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
 // Set some constants for the ADC
   // The multiplier used to convert from 16 bit integer to voltage. Be sure to update this value based on the gain settings!
   #define MULTIPLIER    0.015625
-  // The nominal sensitivity of the hall probe sensor (mV/T). 
-  #define SENSITIVITY   52
+  // The nominal sensitivity of the hall probe sensor (mV/T/mA). 
+  #define SENSITIVITY   51.5
   // The zero-field offset of the hall probe sensor (mV).
   #define OFFSET        0.025
+  // The value of the reference resistor for calculating the current applied across the hall sensor (Ohms). 
+  #define RREF_HALL     220
 
 
 void setup() {
@@ -183,20 +185,27 @@ void loop() {
   }
 
 // Read ADC
-  int16_t adcValue;
-  float adcVoltage;
+  int16_t adcValue01, adcValue23;
+  float adcVoltage01, adcVoltage23, hallCurrent, fieldStrength;
   
-  adcValue = ads.readADC_Differential_0_1();
-  adcVoltage = adcValue * MULTIPLIER;
+  
+  adcValue01 = ads.readADC_Differential_0_1();
+  adcVoltage01 = adcValue * MULTIPLIER;
+  adcValue23 = ads.readADC_Differential_2_3();
+  adcVoltage23 = adcValue * MULTIPLIER;
+  
+  hallCurrent = adcVoltage23 / RREF_HALL;
+  fieldStrength = 1000*((adcVoltage01 - OFFSET)*hallCurrent)/SENSITIVITY
     
   if (debug == true) {
-    Serial.print("Differential: "); Serial.println(adcValue); 
-    Serial.print("("); Serial.print(adcVoltage,4); Serial.println("mV)");
-    Serial.print("Field strength: "); Serial.print(1000*(adcVoltage - OFFSET)/SENSITIVITY); Serial.println(" mT");
+    Serial.print("Applied current: "); Serial.println(hallCurrent);
+    Serial.print("Differential: "); Serial.println(adcValue01); 
+    Serial.print("("); Serial.print(adcVoltage01,4); Serial.println("mV)");
+    Serial.print("Field strength: "); Serial.print(fieldStrength); Serial.println(" mT");
   }
   
 // Print output from sensors
-  Serial.print("{"); Serial.print(Tsensor1.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(Tsensor2.temperature(RNOMINAL, RREF)), Serial.print(", "); Serial.print(Tsensor3.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(1000*(adcVoltage - OFFSET)/SENSITIVITY); Serial.println("}");
+  Serial.print("{"); Serial.print(Tsensor1.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(Tsensor2.temperature(RNOMINAL, RREF)), Serial.print(", "); Serial.print(Tsensor3.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(fieldStrength); Serial.println("}");
 //  Serial.println();
   delay(1000);
 }
