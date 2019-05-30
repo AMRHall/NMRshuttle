@@ -75,7 +75,8 @@ void setup() {
 
 
 void loop() {
-
+  Serial.flush();
+  
 // Read temperature sensor 1
   uint16_t rtd1 = Tsensor1.readRTD();
   if (debug == true) {
@@ -84,8 +85,8 @@ void loop() {
     ratio1 /= 32768;
     Serial.print("Sensor 1 Ratio = "); Serial.println(ratio1,8);
     Serial.print("Sensor 1 Resistance = "); Serial.println(RREF*ratio1,8);
+    Serial.print("Sensor 1 Temperature = "); Serial.println(Tsensor1.temperature(RNOMINAL, RREF));
   }
-  Serial.print("Sensor 1 Temperature = "); Serial.println(Tsensor1.temperature(RNOMINAL, RREF));
   // Check and print any faults
   uint8_t fault1 = Tsensor1.readFault();
   if (fault1) {
@@ -119,8 +120,8 @@ void loop() {
     ratio2 /= 32768;
     Serial.print("Sensor 2 Ratio = "); Serial.println(ratio2,8);
     Serial.print("Sensor 2 Resistance = "); Serial.println(RREF*ratio2,8);
+    Serial.print("Sensor 2 Temperature = "); Serial.println(Tsensor2.temperature(RNOMINAL, RREF));
   }
-  Serial.print("Sensor 2 Temperature = "); Serial.println(Tsensor2.temperature(RNOMINAL, RREF));
   // Check and print any faults
   uint8_t fault2 = Tsensor2.readFault();
   if (fault2) {
@@ -154,8 +155,8 @@ void loop() {
     ratio3 /= 32768;
     Serial.print("Sensor 3 Ratio = "); Serial.println(ratio3,8);
     Serial.print("Sensor 3 Resistance = "); Serial.println(RREF*ratio3,8);
+    Serial.print("Sensor 3 Temperature = "); Serial.println(Tsensor3.temperature(RNOMINAL, RREF));
   }
-  Serial.print("Sensor 3 Temperature = "); Serial.println(Tsensor3.temperature(RNOMINAL, RREF));
   // Check and print any faults
   uint8_t fault3 = Tsensor3.readFault();
   if (fault3) {
@@ -191,9 +192,11 @@ void loop() {
   if (debug == true) {
     Serial.print("Differential: "); Serial.println(adcValue); 
     Serial.print("("); Serial.print(adcVoltage,4); Serial.println("mV)");
+    Serial.print("Field strength: "); Serial.print(1000*(adcVoltage - OFFSET)/SENSITIVITY); Serial.println(" mT");
   }
-  Serial.print("Field strength: "); Serial.print(1000*(adcVoltage - OFFSET)/SENSITIVITY,4); Serial.println(" mT");
   
-  Serial.println();
+// Print output from sensors
+  Serial.print("{"); Serial.print(Tsensor1.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(Tsensor2.temperature(RNOMINAL, RREF)), Serial.print(", "); Serial.print(Tsensor3.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(1000*(adcVoltage - OFFSET)/SENSITIVITY); Serial.println("}");
+//  Serial.println();
   delay(1000);
 }
