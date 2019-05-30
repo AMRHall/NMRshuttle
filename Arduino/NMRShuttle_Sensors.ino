@@ -3,10 +3,8 @@
   PT100/P1000 RTD Sensor w/MAX31865 and for recording magnetic field
   with the LakeShore 2x-250-FA 2Dex Hall sensor and the Adafruit ADS1115
   Analogue to Digital converter.
-
   Designed specifically to work with the Adafruit RTD Sensor
   ----> https://www.adafruit.com/products/3328
-
   The Adafruit RTD sensor uses SPI to communicate, 4 pins are required to  
   interface (3 pins are shared bettween multiple boards)
   
@@ -15,7 +13,6 @@
   Adafruit invests time and resources providing this open source code, 
   please support Adafruit and open-source hardware by purchasing 
   products from Adafruit!
-
   Written by Limor Fried/Ladyada for Adafruit Industries. 
   Modified by Andrew Hall (University of Southampton)
   BSD license, all text above must be included in any redistribution
@@ -190,12 +187,12 @@ void loop() {
   
   
   adcValue01 = ads.readADC_Differential_0_1();
-  adcVoltage01 = adcValue * MULTIPLIER;
+  adcVoltage01 = adcValue01 * MULTIPLIER;
   adcValue23 = ads.readADC_Differential_2_3();
-  adcVoltage23 = adcValue * MULTIPLIER;
+  adcVoltage23 = adcValue23 * MULTIPLIER;
   
   hallCurrent = adcVoltage23 / RREF_HALL;
-  fieldStrength = 1000*((adcVoltage01 - OFFSET)*hallCurrent)/SENSITIVITY
+  fieldStrength = 1000*((adcVoltage01 - OFFSET)*hallCurrent)/SENSITIVITY;
     
   if (debug == true) {
     Serial.print("Applied current: "); Serial.println(hallCurrent);
