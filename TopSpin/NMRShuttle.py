@@ -153,7 +153,7 @@ while m < TD:
 			break
 			
 		#If terminate signal recieved from Topspin, safely stop motor
-		signal.signal(1, terminate)
+		#signal.signal(1, terminate)
 	
 		#Check sample position
 		position = module.userVariable(8)
