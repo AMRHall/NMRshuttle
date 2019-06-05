@@ -146,15 +146,15 @@ proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", 
 #Start acquisition
 ct = XCMD("ZG")
 
+#WORK IN PROGRESS:
+	#Send terminate command to motor if acqusition fails
+	#if ct.getResult() == -1:
+	#	proc.send_signal(signal.SIGTERM)
 
-#Send terminate command to motor if acqusition fails
-if ct.getResult() == -1:
-	proc.send_signal(signal.SIGTERM)
-
-#Abort acquisition if motor returns an error
-return_code = proc.wait()
-if return_code == 0:
-  ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
-else:
-  ct = XCMD("STOP")
-  ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
+	#Abort acquisition if motor returns an error
+	#return_code = proc.wait()
+	#if return_code == 0:
+	#  ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
+	#else:
+	#  ct = XCMD("STOP")
+	#  ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
