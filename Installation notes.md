@@ -43,13 +43,13 @@ If no error messages are given, the installation was a success.
 
 ## 3. Install TopSpin scripts
 ### 3.1. Download files
-Go to https://github.com/AMRHall/NMRshuttle and download the folder as .zip.
+Go to https://github.com/AMRHall/NMRshuttle and download the 'Topspin' folder as .zip.
 Unpack the .zip folder.
 
 ### 3.2. Install scripts
-Open TopSpin and enter the command `edpy` to go to the Python script libary.
+Open TopSpin and enter the command `edpy` to go to the Python script libary. From the drop-down list in the top right corner select the user Python library.
 
-Go to File > Import and from the folder that you have just downloaded select the files named:
+Go to File > Import and from the 'Topspin' folder that you have just downloaded select the files named:
 
 `NMRShuttle.py`
 
@@ -59,10 +59,10 @@ Go to File > Import and from the folder that you have just downloaded select the
 
 Import these files into TopSpin.
 
-Open the file named `runNMRShuttle.py` and check that the file path on line 24 matches the location of the TopSpin installation on your computer.
+Open the file named `runNMRShuttle.py` and check that the file path on line 23 matches the location of the TopSpin installation on your computer.
 
 ### 3.3. Install pulse program
-In TopSpin enter the command `edpul` to go to the pulse program library.
+In TopSpin enter the command `edpul` to go to the pulse program library. From the drop-down list in the top right corner select the user pulse program library.
 
 Go to File > Import and from the folder that you have just downloaded select the file named:
 
