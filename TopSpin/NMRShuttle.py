@@ -70,7 +70,7 @@ if tubeType == 1:
 	stallGuard = NMRShuttleSetup.stallGuard_stan()
 elif tubeType == 2:
 	stallGuard = NMRShuttleSetup.stallGuard_HP5()
-elif tubeType == 3:
+elif tubeType == 3:c
 	stallGuard = NMRShuttleSetup.stallGuard_HP10()
 else:
 	print("Invalid value for tube type.")
@@ -189,8 +189,8 @@ while m < TD:
 			if newLine == True:
 				print('')
 				newLine = False
-			currPosition = (module.actualPosition()*(-Circ))/NStep
-			currField = float(B0/(1+((currPosition/b)**a)))
+			z = (module.actualPosition()*(-Circ))/NStep
+			Bz = float(B0/(1+((z/b)**a)))
 			rampSpeed = int(speed*eval(ramp))
 			module.setTargetSpeed(rampSpeed)
 			print('\rTarget speed = ' + str(rampSpeed), end = ' ')
