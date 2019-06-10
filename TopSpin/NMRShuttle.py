@@ -67,14 +67,14 @@ mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep, 3 = Constan
 # Get tube type and fetch appropriate stall guard settings
 tubeType = int(sys.argv[2]) # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
 if tubeType == 1:
-  stallGuard = NMRShuttleSetup.stallGuard_stan()
+	stallGuard = NMRShuttleSetup.stallGuard_stan()
 elif tubeType == 2:
-  stallGuard = NMRShuttleSetup.stallGuard_HP5()
+	stallGuard = NMRShuttleSetup.stallGuard_HP5()
 elif tubeType == 3:
-  stallGuard = NMRShuttleSetup.stallGuard_HP10()
+	stallGuard = NMRShuttleSetup.stallGuard_HP10()
 else:
-  print("Invalid value for tube type.")
-  sys.exit(0)
+	print("Invalid value for tube type.")
+	sys.exit(0)
 
 # Motor settings
 module.motorRunCurrent(stallGuard.motorRunCurrent)
@@ -90,18 +90,28 @@ uStepRes = module.axisParameter(140)
 fullStepRot = 200
 rampDiv = module.axisParameter(153)
 
-speed = int(((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
-maxSpeed = int(((setup.maxSpeed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
-accel = int(((accel/Circ) * fullStepRot * (2**uStepRes) * (2**(rampDiv + pulseDiv + 29)))/((16 * (10**6))**2))
-
+# The TMCM-1060 works in internal units of pps/s whilst the TMCM-1160 uses arbitary 12 bit internal units
+# These calculations are taken from pages 91 - 95 of the TMCM-1160 manual.
+if setup.model == 'TMCM-1160':
+	speed = int(((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
+	maxSpeed = int(((setup.maxSpeed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
+	accel = int(((accel/Circ) * fullStepRot * (2**uStepRes) * (2**(rampDiv + pulseDiv + 29)))/((16 * (10**6))**2))
+elif setup.model == 'TMCM-1060':
+	speed = int((speed/Circ) * fulStepRot * (2**uStepRes))
+	maxSpeed = int((setup.maxSpeed/Circ) * fullStepRot * (2**uStepRes))
+	accel = int((accel/Circ) * fullStepRot * (2**uStepRes))
+else:
+	print("Invalid motor model.")
+	sys.exit(0)
+	
 module.setMaxVelocity(maxSpeed)
 module.setMaxAcceleration(accel)
 
 
 
 if mode == 1 or mode == 3:
-  module.setTargetSpeed(speed)
-  print("Target speed = " + str(speed))
+	module.setTargetSpeed(speed)
+	print("Target speed = " + str(speed))
 print("Acceleration = " + str(accel))
 
 
