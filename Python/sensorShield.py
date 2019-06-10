@@ -2,30 +2,26 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue May 28 16:48:12 2019
-
 @author: amrh1c18
 """
 
 import serial
 import datetime as dt
-import csv
 import matplotlib
 import matplotlib.pyplot as plt
 
-matplotlib.use("Qt4Agg")
+matplotlib.use("Qt5Agg")
 
 class sensorShield(object):
     n = 9
     
-    def __init__(self, port='/dev/cu.usbmodem14301', baud=115200):
+    def __init__(self, port='/dev/ttyACM0', baud=115200):
         self.port = port
         self.baud = baud
         
         # Set up output data file
-        outData = open('test.csv', 'w+')
-        wr = csv.writer(outData, delimiter=',')
-        wr.writerow(['Timestamp','Temperature 1 (degC)', 'Temperature 2 (degC)', 'Temperature 3 (degC)', 'Field strength (mT)'])
-        self.wr = wr
+        self.outData = open('FS100533_stability_36h.csv', 'w+')
+        self.outData.write('Timestamp' + ', ' + 'Temperature 1 (degC)' + ', ' + 'Temperature 2 (degC)' + ', ' + 'Temperature 3 (degC)' + ', ' + 'Field strength (mT)')
 
         
     def openSensors(self):
@@ -52,7 +48,7 @@ class sensorShield(object):
     def writeData(self):
         if self.n == 10:
             print('Writing data to file...')
-            self.wr.writerow([dt.datetime.now(), self.PT100_1, self.PT100_2, self.PT100_3, self.hallSens])
+            self.outData.write(str(dt.datetime.now()) + ', ' + str(self.PT100_1) + ', ' + str(self.PT100_2) + ', ' + str(self.PT100_3) + ', ' + str(self.hallSens))
             self.n = 0
 
     def intialisePlot(self):
@@ -112,9 +108,8 @@ ss.intialisePlot()
 
 while True:
     data = ss.readSensors()
+    ss.writeData()
     if data != None:
         print(data)
-        ss.writeData()
         ss.plot()
         plt.pause(0.1)
-
