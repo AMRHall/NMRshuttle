@@ -32,37 +32,37 @@ motionTime = float(GETPAR("D 10"))
 
 
 if str(GETPAR("USERA1")) != "":
-  ramp = str(GETPAR("USERA1"))
+	ramp = str(GETPAR("USERA1"))
 else:
-  ramp = setup.ramp
+	ramp = setup.ramp
 
 if GETPAR("CNST 30") != "1":
-  speed = float(GETPAR("CNST 30"))
+	speed = float(GETPAR("CNST 30"))
 else:
-  speed = setup.speed
+	speed = setup.speed
 
 if GETPAR("CNST 31") != "1":
-  accel = float(GETPAR("CNST 31"))
+	accel = float(GETPAR("CNST 31"))
 else:
-  accel = setup.accel
-if (accel < 0)  or (accel > 465.434):
-  value = SELECT(message = "Acceleration out of range! (CNST31)", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
-  if value == 1 or value < 0:
-  	ct = XCMD("STOP")
-  	EXIT()
+	 accel = setup.accel
+if (accel < 0)  or (accel > setup.circ*((1.024*10**13)/(2**(setup.rampDiv+setup.pulDiv+29)))):
+	value = SELECT(message = "Acceleration out of range! (CNST31)", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
+	if value == 1 or value < 0:
+  		ct = XCMD("STOP")
+  		EXIT()
 
 if dim == 0:
-  td = "1"
+	td = "1"
 else:
-  td = GETPAR("TD",1)
+	td = GETPAR("TD",1)
 
 
 #Calculate distance that motor needs to move to achieve the desired field strength.
 distance = float(setup.b*(((setup.B0/BSample)-1)**(1/setup.a)))
 if (distance < 0)  or (distance > setup.maxHeight):
-  ERRMSG("Field strength out of range! (CNST20)", modal=1, title="NMR Shuttle Error")
-  ct = XCMD("STOP")
-  EXIT()
+	ERRMSG("Field strength out of range! (CNST20)", modal=1, title="NMR Shuttle Error")
+	ct = XCMD("STOP")
+	EXIT()
 
 
 #For modes 1 and 3, estimate the amount of time needed to complete sample motion. For constant time mode, calculate the speed that the motor needs to run at.
@@ -77,30 +77,30 @@ if mode == 1:
 elif mode == 2:
 	print("\n\nVelocity sweep mode")
 	motionTime = 0
-	currField = setup.B0
-	currPosition = 0
+	Bz = setup.B0
+	z = 0
 	currSpeed = speed*float(eval(ramp))
 	dDistance = 0
-	if ramp.find("currField") != -1:
-		while currField >= BSample:
-			lastPosition = currPosition
-			currPosition = float(setup.b*(((setup.B0/currField)-1)**(1/setup.a))) 
-			dDistance = currPosition - lastPosition
+	if ramp.find("Bz") != -1:
+		while Bz >= BSample:
+			lastZ = z
+			z = float(setup.b*(((setup.B0/Bz)-1)**(1/setup.a))) 
+			dDistance = z - lastZ
 			lastSpeed = currSpeed
 			currSpeed = speed*float(eval(ramp))
 			avgSpeed = (currSpeed + lastSpeed)/2
 			motionTime += dDistance/avgSpeed
-			currField -= (0.01*(setup.B0-BSample))
-	elif ramp.find('currPosition') != -1:
-		while currPosition <= distance:
+			Bz -= (0.01*(setup.B0-BSample))
+	elif ramp.find('z') != -1:
+		while z <= distance:
 			dDistance = 0.01*distance
 			lastSpeed = currSpeed
 			currSpeed = speed*float(eval(ramp))
 			avgSpeed = (currSpeed + lastSpeed)/2
 			motionTime += dDistance/avgSpeed
-			currPosition += 0.01*distance
+			z += 0.01*distance
 	else:
-		ERRMSG("Invalid equation for velocity sweep ramp.\nEquation must be expressed in terms of sample position (currPosition) or local field strength (currField).", modal=1, title="NMR Shuttle Error")
+		ERRMSG("Invalid equation for velocity sweep ramp.\nEquation must be expressed in terms of sample position (z) or local field strength (currField).", modal=1, title="NMR Shuttle Error")
 		EXIT()
 	PUTPAR("D 10",str(motionTime))
 	
@@ -113,8 +113,8 @@ elif mode == 3:
 		speed = 0.5 * (accel * motionTime - math.sqrt(accel) * math.sqrt(-4 * distance + accel * motionTime**2))
 	PUTPAR("CNST 30",str(speed))
 else:
-  ERRMSG("Invalid value for operation mode (CNST11).", modal=1, title="NMR Shuttle Error")
-  EXIT()
+	ERRMSG("Invalid value for operation mode (CNST11).", modal=1, title="NMR Shuttle Error")
+	EXIT()
 
 
 #Error messages
@@ -127,11 +127,14 @@ elif tubeType == 3:
 else:
 	ERRMSG("Invalid value for tube type (CNST12).", modal=1, title="NMR Shuttle Error")
 	EXIT()
-	
+
+if setup.maxSpeed > setup.circ*(9.765625/(2**setup.pulDiv)):
+	ERRMSG("Maximum speed out of range!\nCheck the settings in the setup file.", modal=1, title="NMR Shuttle Error")
+	EXIT()
 if (speed < 0)  or (speed > setup.maxSpeed):
-  value = SELECT(message = "Speed out of range! (CNST30)\nIf using constant time mode, consider increasing the sample motion time (D10).", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
-  if value == 1 or value < 0:
-  	EXIT()
+	value = SELECT(message = "Speed out of range! (CNST30)\nIf using constant time mode, consider increasing the sample motion time (D10).", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
+	if value == 1 or value < 0:
+  		EXIT()
   
 
 	
