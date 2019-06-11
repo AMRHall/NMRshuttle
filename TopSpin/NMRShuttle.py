@@ -83,6 +83,7 @@ module.stallguard2Filter(stallGuard.stallguard2Filter)
 module.stallguard2Threshold(stallGuard.stallguard2Threshold)
 module.stopOnStall(stallGuard.stopOnStall)
 module.setAxisParameter(154,setup.pulDiv)
+module.setAxisParameter(140,setup.rampDiv)
 
 # Convert speed and acceleration from real units to motor units
 pulseDiv = module.axisParameter(154)
