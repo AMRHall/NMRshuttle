@@ -70,7 +70,7 @@ if tubeType == 1:
 	stallGuard = NMRShuttleSetup.stallGuard_stan()
 elif tubeType == 2:
 	stallGuard = NMRShuttleSetup.stallGuard_HP5()
-elif tubeType == 3:c
+elif tubeType == 3:
 	stallGuard = NMRShuttleSetup.stallGuard_HP10()
 else:
 	print("Invalid value for tube type.")
