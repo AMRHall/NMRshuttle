@@ -21,7 +21,7 @@ class sensorShield(object):
         
         # Set up output data file
         self.outData = open('FS100533_stability_36h.csv', 'w+')
-        self.outData.write('Timestamp' + ', ' + 'Temperature 1 (degC)' + ', ' + 'Temperature 2 (degC)' + ', ' + 'Temperature 3 (degC)' + ', ' + 'Field strength (mT)')
+        self.outData.write('Timestamp' + ', ' + 'Temperature 1 (degC)' + ', ' + 'Temperature 2 (degC)' + ', ' + 'Temperature 3 (degC)' + ', ' + 'Field strength (mT)\n')
 
         
     def openSensors(self):
@@ -48,7 +48,7 @@ class sensorShield(object):
     def writeData(self):
         if self.n == 10:
             print('Writing data to file...')
-            self.outData.write(str(dt.datetime.now()) + ', ' + str(self.PT100_1) + ', ' + str(self.PT100_2) + ', ' + str(self.PT100_3) + ', ' + str(self.hallSens))
+            self.outData.write(str(dt.datetime.now()) + ', ' + str(self.PT100_1) + ', ' + str(self.PT100_2) + ', ' + str(self.PT100_3) + ', ' + str(self.hallSens) + '\n')
             self.n = 0
 
     def intialisePlot(self):
