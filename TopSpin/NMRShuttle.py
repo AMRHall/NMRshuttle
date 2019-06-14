@@ -87,7 +87,7 @@ module.setAxisParameter(153,setup.rampDiv)
 # Convert speed and acceleration from real units to motor units
 pulseDiv = module.axisParameter(154)
 uStepRes = module.axisParameter(140)
-fullStepRot = 200
+fullStepRot = setup.fullStepRot
 rampDiv = module.axisParameter(153)
 NStep = fullStepRot*uStepRes
 
