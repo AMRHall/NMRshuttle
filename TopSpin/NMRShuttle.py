@@ -42,7 +42,6 @@ B0 = setup.B0                      # Magnetic field strength at centre of magnet
 a = setup.a                        # Magnetic field fitting parameter 1 
 b = setup.b                        # Magnetic filed fitting parameter 2
 Circ = setup.circ		   # Circumference of spindle wheel (cm)
-NStep = setup.NStep                # Number of steps for one full revolution of motor
 speed = float(sys.argv[6])	   # Motor speed
 accel = float(sys.argv[7])	   # Acceleration
 ramp = str(sys.argv[8])            # Equation for velocity ramp
@@ -83,13 +82,14 @@ module.stallguard2Filter(stallGuard.stallguard2Filter)
 module.stallguard2Threshold(stallGuard.stallguard2Threshold)
 module.stopOnStall(stallGuard.stopOnStall)
 module.setAxisParameter(154,setup.pulDiv)
-module.setAxisParameter(140,setup.rampDiv)
+module.setAxisParameter(153,setup.rampDiv)
 
 # Convert speed and acceleration from real units to motor units
 pulseDiv = module.axisParameter(154)
 uStepRes = module.axisParameter(140)
 fullStepRot = 200
 rampDiv = module.axisParameter(153)
+NStep = fullStepRot*uStepRes
 
 # The TMCM-1060 works in internal units of pps/s whilst the TMCM-1160 uses arbitary 12 bit internal units
 # These calculations are taken from pages 91 - 95 of the TMCM-1160 manual.
