@@ -25,7 +25,7 @@ class NMRShuttle(object):
   circ =              25
 
   # Number of steps for full revolution of motor
-  NStep =             51200
+  fullStepRot =       200
 
 
 
