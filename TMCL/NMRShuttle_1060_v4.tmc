@@ -1,0 +1,101 @@
+// NMR shuttle motor driver v4.3
+// TMCM-1060 motor
+// (c) Andrew Hall, 2019 (a.m.r.hall@soton.ac.uk)
+//
+// REMEMBER TO PRESS RUN AFTER UPLOADING THE PROGRAMM!
+//
+// SAP is for set axis parameter.
+// Note that our motor has 200 full steps per rotation
+// 1 full step = 256 microsteps
+// 1 rotation is approximately 25 cm (51200 steps)
+
+
+input0 = 0		             // configure motor input as UserVariable0
+dist = 1			             // configure motion distance as UserVariable1
+position = 8		           // configure motor position as UserVariable8
+errflag = 9		             // configure error flag as UserVariable9
+
+SGP errflag, 2, 0    	     //clear error flag
+
+
+SIO 0, 2, 1		             // initialise output0 (1 = sample in position, 0 = sample moving)
+
+
+//Set motor motion parameters
+SGP dist, 2, 0	           // set initial value for upward motion to zero
+SGP position, 2, 0         // set initial value for sample position to 'down'
+SAP 0, 1, 0                // set actual motor position value to zero
+
+// Set distance for motor to move using command 'SGP 1,2,value' in direct control mode. 
+// This may be controlled directly from Topspin using the NMRshuttle python program.
+
+
+// configure interrupt
+VECT 39, Inp0change	    //Set input0 as interupt vector 1
+SGP 39, 3, 2 			      //(1 =low-high)
+
+VECT 40, Inp1change	    //Set input1 as interupt vector 2
+SGP 40, 3, 2 			      //(1 =low-high)
+EI 40				            //Enable input1
+
+EI 255				          //Enable global interupts
+
+GIO input0, 0	    		  //read input0	
+
+
+loop:
+   WAIT TICKS, 0, 100
+   GIO 10, 0   		      //read SHUTDOWN.
+   JC ZE, ShutdownError		//If SHUTDOWN = True (triggered by light gate); then go to error
+   GAP 207, 0             //get Stall error flags
+   JC NZ, Stall
+   JA loop
+
+
+Inp0change:		      //Motor move down
+   DI 39					      //Disable Interupt0 (prevents motor receiving signal twice)  
+   SIO 0, 2, 0					//Set Output0 high (sample moving)
+   SGP position, 2, 2		//Set sample position to 'in motion'
+   SAP 0, 0, 0					//Set target position to home position
+   WAIT POS, 0, 0  			//Wait until motor in position.
+   SGP position, 2, 0		//Set sample position to 'down'
+   SIO 0, 2, 1					//Set Output0 low (sample in position)
+   EI 40				        //Enable Interupt1 (allows motor to recieve 'up' signal)
+   RETI							    //Return to loop
+
+Inp1change:		      //Motor move up
+   DI 40					      //Disable Interupt1 (prevents motor receiving signal twice)
+   SIO 0, 2, 0					//Set Output0 high (sample moving)
+   SGP position, 2, 2		//Set sample position to 'in motion'
+   SAP 0, 0, -dist			//Set target position to 'distance'
+   WAIT POS, 0, 0			  //Wait until motor in position.
+   SGP position, 2, 1		//Set sample position to 'up'
+   SIO 0, 2, 1					//Set Output0 low (sample stationary)
+   EI 39				        //Enable Interupt0
+   RETI							    //Return to loop
+
+ShutdownError: 
+   DI 39			            //Deactivate trigger input 0
+   DI 40			            //Deactivate trigger input 1
+   SGP errflag, 2, 1      //set error flag
+   JA Error
+
+Stall:
+   DI 39			            //Deactivate trigger input 0
+   DI 40			            //Deactivate trigger input 1
+   SGP errflag, 2, 2      //set error flag
+   JA Error
+
+Error:
+   WAIT TICKS, 0, 100
+   GGP errflag, 2	         // Check if error has been cleared by external script
+   JC ZE, Reset		         // If so reset motor
+   JA Error	               // Else loop
+
+Reset:
+   CLE ALL			           //Clear all error flags
+   SGP dist, 2, 0	         // set initial value for upward motion to zero
+   SGP position, 2, 0      // set initial value for sample position to 'down'
+   SAP 0, 1, 0             // set actual motor position value to zero
+   EI 40				           //Enable trigger input 1
+   JA loop			           //Return to loop
