@@ -30,6 +30,9 @@ class sensorShield(object):
         print("Opened connection to sensors")
         # Clear input buffer from Arduino
         print(self.sens.read_all())
+            
+    def clearBuffer(self):
+        self.sens.read_all()
         
     def readSensors(self):
         rawData = str(self.sens.readline())
