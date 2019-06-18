@@ -9,7 +9,6 @@
 # using PT100 temperature sensors and 2Dex hall sensor
 # Also includes graphical user interface.
 #
-
 import tkinter as tk
 from tkinter import filedialog
 import serial
@@ -17,12 +16,13 @@ import datetime as dt
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
+import sys
 
 
 class sensorShield(object):
     n = 0
     
-    def __init__(self, port='/dev/cu.usbmodem14201', baud=115200): 
+    def __init__(self, port='/dev/ttyACM1', baud=115200): 
         # Open connection to arduino
         self.sens = serial.Serial(port, baud)
         print("Opened connection to sensors")
@@ -70,12 +70,13 @@ class sensorShield(object):
                 outStr +=str(self.hallSens)
             self.outData.write(outStr + '\n')
             self.n = 0
+            self.outData.flush()
 
 
         
 class gui(object):
     
-    def __init__(self, port='/dev/cu.usbmodem14201'):
+    def __init__(self, port='/dev/ttyACM1'):
         # Create Tkinter window
         self.root = tk.Tk()
         self.root.wm_title("Temperature and Field Strength Sensors")
@@ -122,9 +123,9 @@ class gui(object):
         self.button6 = tk.Button(master=self.root, text="...", command=self.fileDirectory)
         self.button6.grid(column=3, row=4, sticky='w')
         
-        self.button7 = tk.Button(master=self.root, text="EXIT", command=self.exitProgram)
-        self.button7.grid(column=3, row=5, sticky='e', pady=(15,0))
-        
+        button7 = tk.Button(master=self.root, text="EXIT", command=self.exitProgram)
+        button7.grid(column=3, row=5, pady=(15,0), sticky='e')
+
         # Set up sensors and plot
         self.sens=sensorShield(port=port)
         self.intialisePlot()
@@ -218,6 +219,7 @@ class gui(object):
         path = filedialog.asksaveasfilename(title = "Select file",filetypes = (("csv files","*.csv"),("all files","*.*")))
         self.entrybox2.delete(0,'end')
         self.entrybox2.insert(10, path)
-    
+
     def exitProgram(self):
         self.root.destroy()
+        sys.exit()
