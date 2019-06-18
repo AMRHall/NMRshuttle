@@ -1,10 +1,14 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jun  7 14:21:04 2019
-
-@author: amrh1c18
-"""
+#
+# sensorShield.py
+# Version 1.1, Jun 2019
+#
+# Andrew Hall 2019 (c)
+# a.m.r.hall@soton.ac.uk
+#
+# Python script for measuring temperature and field strength data
+# using PT100 temperature sensors and 2Dex hall sensor
+# Also includes graphical user interface.
+#
 
 import tkinter as tk
 from tkinter import filedialog
@@ -71,7 +75,7 @@ class sensorShield(object):
         
 class gui(object):
     
-    def __init__(self):
+    def __init__(self, port='/dev/cu.usbmodem14201'):
         # Create Tkinter window
         self.root = tk.Tk()
         self.root.wm_title("Temperature and Field Strength Sensors")
@@ -116,11 +120,13 @@ class gui(object):
         self.entrybox2.grid(column=1, row=4, columnspan=3, sticky='w')
         self.entrybox2.insert(10, "Sensor_data.csv")
         self.button6 = tk.Button(master=self.root, text="...", command=self.fileDirectory)
-        self.button6.grid(column=4, row=4, sticky='w')
+        self.button6.grid(column=3, row=4, sticky='w')
         
+        self.button7 = tk.Button(master=self.root, text="EXIT", command=self.exitProgram)
+        self.button7.grid(column=3, row=5, sticky='e', pady=(15,0))
         
         # Set up sensors and plot
-        self.sens=sensorShield()
+        self.sens=sensorShield(port=port)
         self.intialisePlot()
         self.sens.clearBuffer()
         
@@ -137,8 +143,8 @@ class gui(object):
         self.fig = plt.figure(figsize=(8,5))
     
         canvas = FigureCanvasTkAgg(self.fig, master=self.root)
-        canvas.get_tk_widget().grid(column=0, row=1, columnspan=5)
-        tk.Label(self.root,text="Sensor data vs. Time",font=('Arial',18)).grid(column=0, row=0, columnspan=5)
+        canvas.get_tk_widget().grid(column=0, row=1, columnspan=4)
+        tk.Label(self.root,text="Sensor data vs. Time",font=('Arial',18)).grid(column=0, row=0, columnspan=4)
         
         self.ax1 = self.fig.add_subplot(1, 1, 1)
         self.ax2 = self.ax1.twinx()
@@ -212,3 +218,6 @@ class gui(object):
         path = filedialog.asksaveasfilename(title = "Select file",filetypes = (("csv files","*.csv"),("all files","*.*")))
         self.entrybox2.delete(0,'end')
         self.entrybox2.insert(10, path)
+    
+    def exitProgram(self):
+        self.root.destroy()
