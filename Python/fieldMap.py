@@ -40,7 +40,7 @@ class fieldMap(object):
       
         
         
-    def recordFieldMap(self):
+    def recordFieldMap(self, motor='TMCM-1160'):
         # Get some parameters from the motor
         pulseDiv = self.module.axisParameter(154)
         uStepRes = self.module.axisParameter(140)
@@ -50,7 +50,10 @@ class fieldMap(object):
         # Set speed for motor
         Circ = float(input("Motor wheel diameter (cm): "))
         speed = float(input("Target motor speed (cm/s): "))
-        speedPPS = int(((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
+        if motor == 'TMCM-1160':
+            speedPPS = int(((speed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
+        elif motor == 'TMCM-1060':
+            speedPPS = int((speed/Circ) * fullStepRot * (2**uStepRes))
         self.module.setTargetSpeed(speedPPS)
         
         # Get parameters
