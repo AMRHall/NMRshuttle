@@ -22,19 +22,20 @@ from scipy import optimize
 
 class fieldMap(object):
 
-    def __init__(self,motorPort='/dev/ttyACM0',sensorPort='/dev/ttyACM1'):
+    def __init__(self,motorPort='/dev/ttyACM2',sensorPort='/dev/ttyACM1'):
         # Open communications with motor driver
         PyTrinamic.showInfo()
         PyTrinamic.showAvailableComPorts()
-        
+       
         myInterface = serial_tmcl_interface(motorPort)
         self.module = TMCM_1160(myInterface)
         print("\n")
         
         self.module.setActualPosition(0)
+        print('ok')
         
         # Open communications with sensor Arduino board
-        self.sens = sensorShield.sensorShield(port=sensorPort)
+        self.sens = sensorShield.sensorShield()
         self.sens.openSensors()
       
         
@@ -60,24 +61,24 @@ class fieldMap(object):
     
         # Calculate number of steps
         if spacing == 'lin' or 'LIN':
-            distance = np.linspace(0,maxHeight,points,dtype=float)
+            self.distance = np.linspace(0,maxHeight,points,dtype=float)
         elif spacing == 'log' or 'LOG':
-            distance = np.geomspace(1,maxHeight,points,dtype=float)
+            self.distance = np.geomspace(1,maxHeight,points,dtype=float)
             
-        fieldStrength=[]
+        self.fieldStrength=[]
         
-        for x in distance:
+        for x in self.distance:
             steps = int((x*NStep)/Circ)
             field = self.recordField(steps)
-            fieldStrength.append(field)
-            print('Distance: ' + str(x) + 'cm, Field strength: ' + str(field) + 'mt')
+            self.fieldStrength.append(field)
+            print('Distance: ' + str(round(x,2)) + 'cm, Field strength: ' + str(field) + 'mT')
         
         # Plot and fit the results
         self.plot()
         print('\n')
         
         # Print data
-        data = list(zip(distance,fieldStrength))
+        data = list(zip(self.distance,self.fieldStrength))
         print(data)
         print('\n')
         
@@ -95,8 +96,11 @@ class fieldMap(object):
         
         # Save field strength reading from 2Dex sensor
         self.sens.clearBuffer()
-        self.sens.readSensors()
-        field = self.sens.hallSens
+        while True:
+            line = self.sens.readSensors()
+            if line != None and len(line) > 25:
+                field = self.sens.hallSens
+                break
         return field
         
     
