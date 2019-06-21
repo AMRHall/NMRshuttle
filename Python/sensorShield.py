@@ -1,14 +1,11 @@
-#
-# sensorShield.py
-# Version 1.1, Jun 2019
-#
-# Andrew Hall 2019 (c)
-# a.m.r.hall@soton.ac.uk
-#
-# Python script for measuring temperature and field strength data
-# using PT100 temperature sensors and 2Dex hall sensor
-# Also includes graphical user interface.
-#
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jun  7 14:21:04 2019
+
+@author: amrh1c18
+"""
+
 import tkinter as tk
 from tkinter import filedialog
 import serial
@@ -16,7 +13,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
-import sys
+import os
 
 
 class sensorShield(object):
@@ -24,8 +21,12 @@ class sensorShield(object):
     
     def __init__(self, port='/dev/ttyACM1', baud=115200): 
         # Open connection to arduino
-        self.sens = serial.Serial(port, baud)
-        print("Opened connection to sensors")
+        if os.path.exists(port) == True:
+            self.sens = serial.Serial(port, baud)
+            print("Opened connection to sensors")
+        else:
+            print("Serial port not found")
+            return
         # Clear input buffer from Arduino
         print(self.sens.read_all())
 
@@ -222,4 +223,4 @@ class gui(object):
 
     def exitProgram(self):
         self.root.destroy()
-        sys.exit()
+        return
