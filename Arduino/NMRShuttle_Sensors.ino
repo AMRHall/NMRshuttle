@@ -3,8 +3,10 @@
   PT100/P1000 RTD Sensor w/MAX31865 and for recording magnetic field
   with the LakeShore 2x-250-FA 2Dex Hall sensor and the Adafruit ADS1115
   Analogue to Digital converter.
+
   Designed specifically to work with the Adafruit RTD Sensor
   ----> https://www.adafruit.com/products/3328
+
   The Adafruit RTD sensor uses SPI to communicate, 4 pins are required to  
   interface (3 pins are shared bettween multiple boards)
   
@@ -13,6 +15,7 @@
   Adafruit invests time and resources providing this open source code, 
   please support Adafruit and open-source hardware by purchasing 
   products from Adafruit!
+
   Written by Limor Fried/Ladyada for Adafruit Industries. 
   Modified by Andrew Hall (University of Southampton)
   BSD license, all text above must be included in any redistribution
@@ -28,7 +31,7 @@ Adafruit_MAX31865 Tsensor2 = Adafruit_MAX31865(9, 11, 12, 13);
 Adafruit_MAX31865 Tsensor3 = Adafruit_MAX31865(8, 11, 12, 13);
 Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
 
-#define debug  false
+#define debug false
 
 // Set some constants for the temperature sensors
   // The value of the Rref resistor. Use 430.0 for PT100 and 4300.0 for PT1000
@@ -39,16 +42,14 @@ Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
 // Set some constants for the ADC
   // The multiplier used to convert from 16 bit integer to voltage. Be sure to update this value based on the gain settings!
   #define MULTIPLIER    0.015625
-  // The nominal sensitivity of the hall probe sensor (mV/T/mA). 
+  // The nominal sensitivity of the hall probe sensor (mV/T). 
   #define SENSITIVITY   51.5
   // The zero-field offset of the hall probe sensor (mV).
-  #define OFFSET        0.025
-  // The value of the reference resistor for calculating the current applied across the hall sensor (Ohms). 
-  #define RREF_HALL     220
+  #define OFFSET        0.0 //0.025
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println("Adafruit MAX31865 PT100 & Adafruit ADS1115 ADC Sensor Test");
   Serial.println("ADC Range: +/- 0.512V (8x gain, 1 bit = 0.015625mV)");
   
@@ -182,27 +183,29 @@ void loop() {
   }
 
 // Read ADC
-  int16_t adcValue01, adcValue23;
-  float adcVoltage01, adcVoltage23, hallCurrent, fieldStrength;
+  int16_t adcValue;
+  float adcVoltage;
   
+  adcValue = ads.readADC_Differential_0_1();
+  adcVoltage = adcValue * MULTIPLIER;
   
-  adcValue01 = ads.readADC_Differential_0_1();
-  adcVoltage01 = adcValue01 * MULTIPLIER;
-  adcValue23 = ads.readADC_Differential_2_3();
-  adcVoltage23 = adcValue23 * MULTIPLIER;
-  
-  hallCurrent = adcVoltage23 / RREF_HALL;
-  fieldStrength = 1000*((adcVoltage01 - OFFSET)*hallCurrent)/SENSITIVITY;
+  // Since ADC gain is limited to prrevent damage to chip at high magentic fields
+  // at low magnetic fields, gain can be increased.
+  if (adcVoltage < 128) {
+    ads.setGain(GAIN_SIXTEEN);
+    adcValue = ads.readADC_Differential_0_1();
+    adcVoltage = adcValue * MULTIPLIER / 2;
+    ads.setGain(GAIN_EIGHT);
+  }
     
   if (debug == true) {
-    Serial.print("Applied current: "); Serial.println(hallCurrent);
-    Serial.print("Differential: "); Serial.println(adcValue01); 
-    Serial.print("("); Serial.print(adcVoltage01,4); Serial.println("mV)");
-    Serial.print("Field strength: "); Serial.print(fieldStrength); Serial.println(" mT");
+    Serial.print("Differential: "); Serial.println(adcValue); 
+    Serial.print("("); Serial.print(adcVoltage,4); Serial.println("mV)");
+    Serial.print("Field strength: "); Serial.print(1000*(adcVoltage - OFFSET)/SENSITIVITY); Serial.println(" mT");
   }
   
 // Print output from sensors
-  Serial.print("{"); Serial.print(Tsensor1.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(Tsensor2.temperature(RNOMINAL, RREF)), Serial.print(", "); Serial.print(Tsensor3.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(fieldStrength); Serial.println("}");
+  Serial.print("{"); Serial.print(Tsensor1.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(Tsensor2.temperature(RNOMINAL, RREF)), Serial.print(", "); Serial.print(Tsensor3.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(1000*(adcVoltage - OFFSET)/SENSITIVITY); Serial.println("}");
 //  Serial.println();
   delay(1000);
 }
