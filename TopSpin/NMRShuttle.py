@@ -89,7 +89,7 @@ pulseDiv = module.axisParameter(154)
 uStepRes = module.axisParameter(140)
 fullStepRot = setup.fullStepRot
 rampDiv = module.axisParameter(153)
-NStep = fullStepRot*uStepRes
+NStep = fullStepRot*2**uStepRes
 
 # The TMCM-1060 works in internal units of pps/s whilst the TMCM-1160 uses arbitary 12 bit internal units
 # These calculations are taken from pages 91 - 95 of the TMCM-1160 manual.
@@ -195,7 +195,7 @@ while m < TD:
 			rampSpeed = int(speed*eval(ramp))
 			module.setTargetSpeed(rampSpeed)
 			print('\rTarget speed = ' + str(rampSpeed), end = ' ')
-		
+		time.sleep(0.03)
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
 module.setUserVariable(1,0)
