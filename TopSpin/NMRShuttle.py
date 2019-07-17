@@ -49,7 +49,7 @@ ramp = str(sys.argv[8])            # Equation for velocity ramp
 
 # Open communications with motor driver
 PyTrinamic.showInfo()
-PyTrinamic.showAvailableComPorts()
+#PyTrinamic.showAvailableComPorts()
 
 myInterface = serial_tmcl_interface(setup.serial)
 module = TMCM_1160(myInterface)
@@ -58,6 +58,7 @@ print("\n")
 # Reset all error flags
 errflag = 0
 module.setUserVariable(9,0)
+module.setUserVariable(8,0)
 
 
 # Get operation mode
@@ -89,7 +90,7 @@ pulseDiv = module.axisParameter(154)
 uStepRes = module.axisParameter(140)
 fullStepRot = setup.fullStepRot
 rampDiv = module.axisParameter(153)
-NStep = fullStepRot*2**uStepRes
+NStep = fullStepRot * 2**uStepRes
 
 # The TMCM-1060 works in internal units of pps/s whilst the TMCM-1160 uses arbitary 12 bit internal units
 # These calculations are taken from pages 91 - 95 of the TMCM-1160 manual.
@@ -98,7 +99,7 @@ if setup.model == 'TMCM-1160':
 	maxSpeed = int(((setup.maxSpeed/Circ) * fullStepRot * (2**uStepRes) * (2**pulseDiv) * 2048 * 32)/(16 * (10**6)))
 	accel = int(((accel/Circ) * fullStepRot * (2**uStepRes) * (2**(rampDiv + pulseDiv + 29)))/((16 * (10**6))**2))
 elif setup.model == 'TMCM-1060':
-	speed = int((speed/Circ) * fulStepRot * (2**uStepRes))
+	speed = int((speed/Circ) * fullStepRot * (2**uStepRes))
 	maxSpeed = int((setup.maxSpeed/Circ) * fullStepRot * (2**uStepRes))
 	accel = int((accel/Circ) * fullStepRot * (2**uStepRes))
 else:
@@ -122,7 +123,10 @@ print(str("Magnetic field strength = " + str(BSample) +  " mT"))
 
     
 # Calculate sample position needed to achieve this field strength
-dist = float(b*(((B0/BSample)-1)**(1/a)))
+if BSample == setup.lowFieldCoil_Field:
+	dist = setup.lowFieldCoil_Dist
+else:
+	dist = float(b*(((B0/BSample)-1)**(1/a)))
 print(str("Height = " + str(round(dist,2)) + " cm"))
 
     
@@ -154,14 +158,14 @@ while m < TD:
 	m += 1
 	while n < NS:	
 		# Check for errors in motor
-		if module.digitalInput(10) == 0:		#Shutdown error from light gate
-			print("\nEmergency stop detected. Aborting acquisition.")
-			errflag += 1
-			break
-		elif module.statusFlags() != 0:       #Stall detected
-			print("\nStall detected. Aborting acquisition.")
-			errflag += 1
-			break
+		#if module.digitalInput(10) == 0:		#Shutdown error from light gate
+		#	print("\nEmergency stop detected. Aborting acquisition.")
+		#	errflag += 1
+		#	break
+		#elif module.statusFlags() != 0:       #Stall detected
+		#	print("\nStall detected. Aborting acquisition.")
+		#	errflag += 1
+		#	break
 			
 		#If terminate signal recieved from Topspin, safely stop motor
 		#signal.signal(1, terminate)
@@ -190,17 +194,18 @@ while m < TD:
 			if newLine == True:
 				print('')
 				newLine = False
-			z = (module.actualPosition()*(-Circ))/NStep
+			z = (module.actualPosition()*(Circ))/NStep
 			Bz = float(B0/(1+((z/b)**a)))
 			rampSpeed = int(speed*eval(ramp))
 			module.setTargetSpeed(rampSpeed)
 			print('\rTarget speed = ' + str(rampSpeed), end = ' ')
-		time.sleep(0.03)
+		time.sleep(0.05)
+		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
 module.setUserVariable(1,0)
 
-# Print competion message
+# Print completion message
 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 if errflag ==0:
 	print(str("\nSequence successfully completed at " + str(timestamp)))
