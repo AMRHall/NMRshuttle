@@ -9,20 +9,23 @@ class NMRShuttle(object):
   serial =            "/dev/ttyACM0"
   
   # Motor model
-  model =             "TMCM-1060"
+  model =             "TMCM-1160"
+  
+  # Motor direction
+  direction =         -1
 
   # Maximum allowed height (cm)
-  maxHeight =         150
+  maxHeight =         90
 
   # Magnetic field strength at magnet core (mT)
-  B0 =                9389.86
+  B0 =                7056.390197
 
   # Fitting parameters for NMR field map [equation of the form B(z) = B0/(1+(z/b)^a)]
-  a =                 6.1093
-  b =                 22.5817
+  a =                 5.75
+  b =                 20.34
 
   # Circumference of motor wheel (cm)
-  circ =              34.00
+  circ =              25.0
 
   # Number of steps for full revolution of motor
   fullStepRot =       200
@@ -73,24 +76,24 @@ class NMRShuttle(object):
 # SEE THE MANUAL FOR MORE DETAILS.
 # *****************************
 
-class stallGuard_stan(object):
-  # Stall guard settings for standard glass tube
-  motorRunCurrent =         64
-  motorStandbyCurrent =     16
-  stallguard2Filter =       1
-  stallguard2Threshold =    7
-  stopOnStall =             10000
-
-class stallGuard_HP5(object):
-  # Stall guard settings for 5mm high pressure tube
+class stallGuard_1(object):
+  # Stall guard setting 1
   motorRunCurrent =         64
   motorStandbyCurrent =     16
   stallguard2Filter =       1
   stallguard2Threshold =    4
   stopOnStall =             1000
 
-class stallGuard_HP10(object):
-  # Stall guard settings for 10mm high pressure tube
+class stallGuard_2(object):
+  # Stall guard setting 2
+  motorRunCurrent =         64
+  motorStandbyCurrent =     16
+  stallguard2Filter =       1
+  stallguard2Threshold =    4
+  stopOnStall =             1000
+
+class stallGuard_3(object):
+  # Stall guard setting 3
   motorRunCurrent =         80
   motorStandbyCurrent =     16
   stallguard2Filter =       1
