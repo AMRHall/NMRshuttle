@@ -20,7 +20,7 @@ import subprocess
 setup = NMRShuttleSetup.NMRShuttle()
 
 #Set TopSpin installation directory
-path = "/opt/topspin3.5pl7/"
+path = "/opt/topspin4.0.1/"
 
 #Get parameters from TopSpin and NMRShuttleSetup.py
 mode = int(GETPAR("CNST 11"))
@@ -58,7 +58,10 @@ else:
 
 
 #Calculate distance that motor needs to move to achieve the desired field strength.
-distance = float(setup.b*(((setup.B0/BSample)-1)**(1/setup.a)))
+if BSample == setup.lowFieldCoil_Field:
+	distance = setup.lowFieldCoil_Dist
+else:
+	distance = float(setup.b*(((setup.B0/BSample)-1)**(1/setup.a)))
 if (distance < 0)  or (distance > setup.maxHeight):
 	ERRMSG("Field strength out of range! (CNST20)", modal=1, title="NMR Shuttle Error")
 	ct = XCMD("STOP")
@@ -147,17 +150,18 @@ print(command + arguments)
 proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
 
 #Start acquisition
-ct = XCMD("ZG")
+ct = XCMD("ZG", wait=NO_WAIT_TILL_DONE)
+
 
 #WORK IN PROGRESS:
-	#Send terminate command to motor if acqusition fails
-	#if ct.getResult() == -1:
-	#	proc.send_signal(signal.SIGTERM)
+#Send terminate command to motor if acqusition fails
+#if ct.getResult() == -1:
+#	proc.send_signal(signal.SIGTERM)
 
-	#Abort acquisition if motor returns an error
-	#return_code = proc.wait()
-	#if return_code == 0:
-	#  ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
-	#else:
-	#  ct = XCMD("STOP")
-	#  ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
+#Abort acquisition if motor returns an error
+return_code = proc.wait()
+if return_code == 0:
+  ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
+else:
+  ct = XCMD("STOP")
+  ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
