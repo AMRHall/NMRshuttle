@@ -67,11 +67,11 @@ mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep, 3 = Constan
 # Get tube type and fetch appropriate stall guard settings
 tubeType = int(sys.argv[2]) # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
 if tubeType == 1:
-	stallGuard = NMRShuttleSetup.stallGuard_stan()
+	stallGuard = NMRShuttleSetup.stallGuard_1()
 elif tubeType == 2:
-	stallGuard = NMRShuttleSetup.stallGuard_HP5()
+	stallGuard = NMRShuttleSetup.stallGuard_2()
 elif tubeType == 3:
-	stallGuard = NMRShuttleSetup.stallGuard_HP10()
+	stallGuard = NMRShuttleSetup.stallGuard_3()
 else:
 	print("Invalid value for tube type.")
 	sys.exit(0)
@@ -158,14 +158,14 @@ while m < TD:
 	m += 1
 	while n < NS:	
 		# Check for errors in motor
-		#if module.digitalInput(10) == 0:		#Shutdown error from light gate
-		#	print("\nEmergency stop detected. Aborting acquisition.")
-		#	errflag += 1
-		#	break
-		#elif module.statusFlags() != 0:       #Stall detected
-		#	print("\nStall detected. Aborting acquisition.")
-		#	errflag += 1
-		#	break
+		if module.digitalInput(10) == 0:		#Shutdown error from light gate
+			print("\nEmergency stop detected. Aborting acquisition.")
+			errflag += 1
+			break
+		elif module.statusFlags() != 0:       #Stall detected
+			print("\nStall detected. Aborting acquisition.")
+			errflag += 1
+			break
 			
 		#If terminate signal recieved from Topspin, safely stop motor
 		#signal.signal(1, terminate)
@@ -194,7 +194,7 @@ while m < TD:
 			if newLine == True:
 				print('')
 				newLine = False
-			z = (module.actualPosition()*(Circ))/NStep
+			z = (module.actualPosition()*(setup.direction*Circ))/NStep
 			Bz = float(B0/(1+((z/b)**a)))
 			rampSpeed = int(speed*eval(ramp))
 			module.setTargetSpeed(rampSpeed)
