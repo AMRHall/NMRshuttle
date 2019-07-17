@@ -20,7 +20,7 @@ import subprocess
 setup = NMRShuttleSetup.NMRShuttle()
 
 #Set TopSpin installation directory
-path = "/opt/topspin4.0.1/"
+path = "/opt/topspin3.5pl7/"
 
 #Get parameters from TopSpin and NMRShuttleSetup.py
 mode = int(GETPAR("CNST 11"))
