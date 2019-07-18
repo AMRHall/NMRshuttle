@@ -20,10 +20,6 @@ class NMRShuttle(object):
   # Magnetic field strength at magnet core (mT)
   B0 =                7056.390197
 
-  # Fitting parameters for NMR field map [equation of the form B(z) = B0/(1+(z/b)^a)]
-  a =                 5.75
-  b =                 20.34
-
   # Circumference of motor wheel (cm)
   circ =              25.0
 
