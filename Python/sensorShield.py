@@ -19,7 +19,7 @@ import os
 class sensorShield(object):
     n = 0
     
-    def __init__(self, port='/dev/ttyACM1', baud=115200): 
+    def __init__(self, port='/dev/ttyACM1', baud=9600): 
         # Open connection to arduino
         if os.path.exists(port) == True:
             self.sens = serial.Serial(port, baud)
