@@ -1,6 +1,6 @@
 #
 # runNMRShuttle.py
-# Version 1.2, Apr 2019
+# Version 1.3, Jul 2019
 #
 # Andrew Hall 2019 (c)
 # a.m.r.hall@soton.ac.uk
@@ -16,41 +16,58 @@ import os
 import math
 import NMRShuttleSetup
 import subprocess
+import numpy as np
 
 setup = NMRShuttleSetup.NMRShuttle()
 
 #Set TopSpin installation directory
 path = "/opt/topspin3.5pl7/"
 
+#Open file containing experimental field map
+fieldMap = open('fieldMap.csv', 'r')
+
+distanceValues = []
+fieldValues = []
+
+fieldMapValues = fieldMap.readlines()
+del fieldMapValues[0]		#Remove header line
+for i in fieldMapValues:
+	value = i.split(',')
+	distanceValues.append(float(value[0]))
+	fieldValues.append(float(value[1]))
+
 #Get parameters from TopSpin and NMRShuttleSetup.py
-mode = int(GETPAR("CNST 11"))
-tubeType = int(GETPAR("CNST 12"))
-BSample = float(GETPAR("CNST 20"))
-ns = int(GETPAR("NS"))
-dim = int(GETPAR("PARMODE"))
-motionTime = float(GETPAR("D 10"))
+mode = int(GETPAR("CNST 11"))		#Operation mode: 1=Constant speed, 2=Variable speed, 3=Constant time
+stallSetting = int(GETPAR("CNST 12"))	#Sets which stall guard settings from setup file to use
+BSample = float(GETPAR("CNST 20"))	#Target field strength (mT)
+ns = int(GETPAR("NS"))			#Number of scans
+dim = int(GETPAR("PARMODE"))		#Spectrum dimensions (1D, 2D...)
+motionTime = float(GETPAR("D 10"))	#Time taken for sample motion (s)
 
-
+#Get ramp equation used for variable speed experiments
 if str(GETPAR("USERA1")) != "":
 	ramp = str(GETPAR("USERA1"))
 else:
 	ramp = setup.ramp
 
+#Check if user has set a speed, if not use default
 if GETPAR("CNST 30") != "1":
 	speed = float(GETPAR("CNST 30"))
 else:
 	speed = setup.speed
 
+#Check if user has set an acceleration rate, if not use default. Make sure it is within the limits of the motor.
 if GETPAR("CNST 31") != "1":
 	accel = float(GETPAR("CNST 31"))
 else:
-	 accel = setup.accel
+	accel = setup.accel
 if (accel < 0)  or (accel > setup.circ*((1.024*10**13)/(2**(setup.rampDiv+setup.pulDiv+29)))):
 	value = SELECT(message = "Acceleration out of range! (CNST31)", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
 	if value == 1 or value < 0:
   		ct = XCMD("STOP")
   		EXIT()
-
+		
+#For multi-dimensional experiments get number of points in F1 dimension
 if dim == 0:
 	td = "1"
 else:
@@ -61,7 +78,8 @@ else:
 if BSample == setup.lowFieldCoil_Field:
 	distance = setup.lowFieldCoil_Dist
 else:
-	distance = float(setup.b*(((setup.B0/BSample)-1)**(1/setup.a)))
+	distance = np.interp(BSample,fieldValues[::-1],distanceValues[::-1]
+	
 if (distance < 0)  or (distance > setup.maxHeight):
 	ERRMSG("Field strength out of range! (CNST20)", modal=1, title="NMR Shuttle Error")
 	ct = XCMD("STOP")
@@ -77,7 +95,7 @@ if mode == 1:
 		motionTime = 2 * (speed/accel) + (distance - accel*((speed/accel)**2))/speed
 	PUTPAR("D 10",str(motionTime))
 	
-elif mode == 2:
+elif mode == 2:		#NB. Calculations in this mode assume a high acceleration rate
 	print("\n\nVelocity sweep mode")
 	motionTime = 0
 	Bz = setup.B0
@@ -87,7 +105,7 @@ elif mode == 2:
 	if ramp.find("Bz") != -1:
 		while Bz >= BSample:
 			lastZ = z
-			z = float(setup.b*(((setup.B0/Bz)-1)**(1/setup.a))) 
+			z = np.interp(Bz,fieldValues[::-1],distanceValues[::-1])
 			dDistance = z - lastZ
 			lastSpeed = currSpeed
 			currSpeed = speed*float(eval(ramp))
@@ -121,14 +139,14 @@ else:
 
 
 #Error messages
-if tubeType == 1:
-	print("Standard 5mm tube")
-elif tubeType == 2:
-	print("5mm high pressure tube")
-elif tubeType == 3:
-	print("10mm high pressure tube")
+if stallSetting == 1:
+	print("Stall setting 1")
+elif stallSetting == 2:
+	print("Stall setting 1")
+elif stallSetting == 3:
+	print("Stall setting 1")
 else:
-	ERRMSG("Invalid value for tube type (CNST12).", modal=1, title="NMR Shuttle Error")
+	ERRMSG("Invalid value for stall setting (CNST12).", modal=1, title="NMR Shuttle Error")
 	EXIT()
 
 if setup.maxSpeed > setup.circ*(9.765625/(2**setup.pulDiv)):
@@ -142,9 +160,8 @@ if (speed < 0)  or (speed > setup.maxSpeed):
 
 	
 #Call NMRShuttle.py with arguments 
-
 command = "python3.6 NMRShuttle.py "
-arguments = str(mode) + " " + str(tubeType) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " '" + ramp + "'"
+arguments = str(mode) + " " + str(stallSetting) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + str(distance) + " " + " '" + ramp + "'"
 
 print(command + arguments)
 proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
@@ -155,8 +172,8 @@ ct = XCMD("ZG", wait=NO_WAIT_TILL_DONE)
 
 #WORK IN PROGRESS:
 #Send terminate command to motor if acqusition fails
-#if ct.getResult() == -1:
-#	proc.send_signal(signal.SIGTERM)
+if ct.getResult() == -1:
+	proc.send_signal(signal.SIGTERM)
 
 #Abort acquisition if motor returns an error
 return_code = proc.wait()
