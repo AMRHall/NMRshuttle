@@ -1,6 +1,6 @@
 #
 # NMRshuttle.py
-# Version 2.3, Apr 2019
+# Version 2.4, Jul 2019
 #
 # Andrew Hall 2019 (c)
 # a.m.r.hall@soton.ac.uk
@@ -37,14 +37,13 @@ print("NMRshuttle.py\nVersion 2.3\nThis program is for controlling a NMR low fie
 setup = NMRShuttleSetup.NMRShuttle()
 
 # Define parameters of magnet + shuttle system
-MaxHeight = setup.maxHeight        # Maximum height of sample (cm)
 B0 = setup.B0                      # Magnetic field strength at centre of magnet (Tesla)
-a = setup.a                        # Magnetic field fitting parameter 1 
-b = setup.b                        # Magnetic filed fitting parameter 2
 Circ = setup.circ		   # Circumference of spindle wheel (cm)
-speed = float(sys.argv[6])	   # Motor speed
-accel = float(sys.argv[7])	   # Acceleration
-ramp = str(sys.argv[8])            # Equation for velocity ramp
+BSample = float(sys.argv[3])	   # Sample field strength (mT)
+speed = float(sys.argv[6])	   # Motor speed (cm/s)
+accel = float(sys.argv[7])	   # Acceleration (cm/s^2)
+dist = float(sys.argv[8]	   # Distance to move (cm)
+ramp = str(sys.argv[9])            # Equation for velocity ramp
 
 
 # Open communications with motor driver
@@ -57,8 +56,8 @@ print("\n")
 
 # Reset all error flags
 errflag = 0
-module.setUserVariable(9,0)
-module.setUserVariable(8,0)
+module.setUserVariable(9,0)	#Clear motor error flags
+module.setUserVariable(8,0)	#Set position to 'down'
 
 
 # Get operation mode
@@ -110,31 +109,17 @@ module.setMaxVelocity(maxSpeed)
 module.setMaxAcceleration(accel)
 
 
-
+#Print some information for the user
 if mode == 1 or mode == 3:
 	module.setTargetSpeed(speed)
 	print("Target speed = " + str(speed))
+	     
 print("Acceleration = " + str(accel))
 
-
-# Fetch desired magnetic field strength (mT)
-BSample = float(sys.argv[3])
 print(str("Magnetic field strength = " + str(BSample) +  " mT"))
 
-    
-# Calculate sample position needed to achieve this field strength
-if BSample == setup.lowFieldCoil_Field:
-	dist = setup.lowFieldCoil_Dist
-else:
-	dist = float(b*(((B0/BSample)-1)**(1/a)))
 print(str("Height = " + str(round(dist,2)) + " cm"))
 
-    
-# Error if sample position too high or too low
-if (dist < 0)  or (dist > MaxHeight):
-	print("Field strength out of range!")
-	errflag += 1
-	sys.exit(0)
     
 # Calculate number of steps
 steps = int((dist*NStep)/Circ)
