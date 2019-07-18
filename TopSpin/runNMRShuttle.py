@@ -182,3 +182,5 @@ if return_code == 0:
 else:
   ct = XCMD("STOP")
   ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
+
+fieldMap.close()
