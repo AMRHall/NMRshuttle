@@ -14,14 +14,12 @@
 
 # Import libraries and define functions
 import NMRShuttleSetup
-import sys
 import PyTrinamic
 from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
 from PyTrinamic.modules.TMCM_1160 import TMCM_1160
-import time
-import datetime
-import math
-import signal
+import time, datetime, math, signal, sys
+import numpy as np
+import sensorShield
 
 # Define what to do if terminate signal recieved from Topspin
 def terminate(signal,frame):
@@ -30,6 +28,36 @@ def terminate(signal,frame):
 	myInterface.close()
 	sys.exit(-1)
 
+def readSensors():
+	try:
+		sens.readSensors()
+		hallSens = sens.hallSens
+		temp = sens.PT100_1
+			
+		sensPos = np.interp(hallSens,distanceValues,fieldValues)
+		calcPos = sensPos - setup.offsetDist
+		calcField = np.interp(calcPos,fieldValues[::-1],distanceValues[::-1]
+				      
+# Open sensors
+try:
+	sens = sensorShield.sensorShield()
+calcField = 'XXX'
+temp = 'XXX'
+
+# Get field map values from file
+fieldMap = open(setup.fieldMap,'r')
+fieldMapValues = fieldMap.readlines()
+del fieldMapValues[0]
+		
+distanceValues = []
+fieldValues = []
+		
+for i in fieldMapValues:
+	value = i.split(',')
+	distanceValues.append(float(value[0]))
+	fieldValues.append(float(value[1]))
+fieldMap.close()				  
+				      
 # Print information about script
 print("NMRshuttle.py\nVersion 2.3\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
 
@@ -151,7 +179,10 @@ while m < TD:
 			print("\nStall detected. Aborting acquisition.")
 			errflag += 1
 			break
-			
+		
+		try:
+			readSensors()
+		
 		#If terminate signal recieved from Topspin, safely stop motor
 		#signal.signal(1, terminate)
 	
@@ -160,6 +191,7 @@ while m < TD:
 		if up == False and position == 1:
 			up = True
 			print("\nSample up.")
+			print("Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
 			startTime = time.time()
 		if up == True and position == 1:
 			elapsedTime = round(time.time() - startTime,1)
@@ -169,6 +201,7 @@ while m < TD:
 			up = False
 			n += 1
 			print("\nSample down.")
+			print("Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
 			if TD == 1:
 				print(str("Completed scan " + str(n) + " of " + str(NS) + " at magnetic field strength of " + str(BSample) + " mT"))
 			else:
