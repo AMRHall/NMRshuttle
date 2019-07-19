@@ -45,7 +45,7 @@ calcField = 'XXX'
 temp = 'XXX'
 
 # Get field map values from file
-fieldMap = open(setup.fieldMap,'r')
+fieldMap = open('fieldMap.csv','r')
 fieldMapValues = fieldMap.readlines()
 del fieldMapValues[0]
 		
