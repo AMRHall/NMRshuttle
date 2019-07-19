@@ -50,6 +50,8 @@ class NMRShuttle(object):
   lowFieldCoil_Dist = 150.0
   
   
+  # Offset distance of Hall sensor from sample
+  offsetDist =        20.0
   
   
 # *****************************
