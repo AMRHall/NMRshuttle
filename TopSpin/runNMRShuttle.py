@@ -16,15 +16,28 @@ import os
 import math
 import NMRShuttleSetup
 import subprocess
-import numpy as np
 
 setup = NMRShuttleSetup.NMRShuttle()
+
+def interp(x, x_arr, y_arr):
+	for i, xi in enumerate(x_arr):
+		if xi >= x:
+			break    
+	else:
+		return None
+	if i == 0:
+		return None
+	x_min = x_arr[i-1]
+	y_min = y_arr[i-1]
+	y_max = y_arr[i]
+	factor = (x - x_min) / (xi - x_min)
+	return y_min + (y_max - y_min) * factor 
 
 #Set TopSpin installation directory
 path = "/opt/topspin3.5pl7/"
 
 #Open file containing experimental field map
-fieldMap = open('fieldMap.csv', 'r')
+fieldMap = open(path+'exp/stan/nmr/py/user/fieldMap.csv', 'r')
 
 distanceValues = []
 fieldValues = []
@@ -61,7 +74,7 @@ if GETPAR("CNST 31") != "1":
 	accel = float(GETPAR("CNST 31"))
 else:
 	accel = setup.accel
-if (accel < 0)  or (accel > setup.circ*((1.024*10**13)/(2**(setup.rampDiv+setup.pulDiv+29)))):
+if (accel < 0) or (accel > setup.circ*((1.024*10**13)/(2**(setup.rampDiv+setup.pulDiv+29)))):
 	value = SELECT(message = "Acceleration out of range! (CNST31)", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
 	if value == 1 or value < 0:
   		ct = XCMD("STOP")
@@ -78,9 +91,9 @@ else:
 if BSample == setup.lowFieldCoil_Field:
 	distance = setup.lowFieldCoil_Dist
 else:
-	distance = np.interp(BSample,fieldValues[::-1],distanceValues[::-1]
-	
-if (distance < 0)  or (distance > setup.maxHeight):
+	distance = interp(BSample,fieldValues[::-1],distanceValues[::-1])
+print(distance)
+if (distance < 0) or (distance > setup.maxHeight):
 	ERRMSG("Field strength out of range! (CNST20)", modal=1, title="NMR Shuttle Error")
 	ct = XCMD("STOP")
 	EXIT()
@@ -105,7 +118,7 @@ elif mode == 2:		#NB. Calculations in this mode assume a high acceleration rate
 	if ramp.find("Bz") != -1:
 		while Bz >= BSample:
 			lastZ = z
-			z = np.interp(Bz,fieldValues[::-1],distanceValues[::-1])
+			z = interp(Bz,fieldValues[::-1],distanceValues[::-1])
 			dDistance = z - lastZ
 			lastSpeed = currSpeed
 			currSpeed = speed*float(eval(ramp))
