@@ -1,6 +1,6 @@
 #
 # NMRshuttle.py
-# Version 2.4, Jul 2019
+# Version 3.0, Jul 2019
 #
 # Andrew Hall 2019 (c)
 # a.m.r.hall@soton.ac.uk
@@ -29,18 +29,20 @@ def terminate(signal,frame):
 	sys.exit(-1)
 
 def readSensors():
-	try:
-		sens.readSensors()
-		hallSens = sens.hallSens
-		temp = sens.PT100_1
+	sens.readSensors()
+	hallSens = sens.hallSens
+	temp = sens.PT100_1
 			
-		sensPos = np.interp(hallSens,distanceValues,fieldValues)
-		calcPos = sensPos - setup.offsetDist
-		calcField = np.interp(calcPos,fieldValues[::-1],distanceValues[::-1]
+	sensPos = np.interp(hallSens,distanceValues,fieldValues)
+	calcPos = sensPos - setup.offsetDist
+	calcField = np.interp(calcPos,fieldValues[::-1],distanceValues[::-1])
+	return temp, calcField
 				      
 # Open sensors
 try:
 	sens = sensorShield.sensorShield()
+except:
+	print('sensorShield.py not installed')
 calcField = 'XXX'
 temp = 'XXX'
 
@@ -59,7 +61,7 @@ for i in fieldMapValues:
 fieldMap.close()				  
 				      
 # Print information about script
-print("NMRshuttle.py\nVersion 2.3\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
+print("NMRshuttle.py\nVersion 3.0\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
 
 # Import default values from setup file
 setup = NMRShuttleSetup.NMRShuttle()
@@ -70,7 +72,7 @@ Circ = setup.circ		   # Circumference of spindle wheel (cm)
 BSample = float(sys.argv[3])	   # Sample field strength (mT)
 speed = float(sys.argv[6])	   # Motor speed (cm/s)
 accel = float(sys.argv[7])	   # Acceleration (cm/s^2)
-dist = float(sys.argv[8]	   # Distance to move (cm)
+dist = float(sys.argv[8])	   # Distance to move (cm)
 ramp = str(sys.argv[9])            # Equation for velocity ramp
 
 
@@ -179,9 +181,11 @@ while m < TD:
 			print("\nStall detected. Aborting acquisition.")
 			errflag += 1
 			break
-		
+
 		try:
-			readSensors()
+			temp, calcField = readSensors() 
+		except:
+			pass
 		
 		#If terminate signal recieved from Topspin, safely stop motor
 		#signal.signal(1, terminate)
@@ -190,8 +194,7 @@ while m < TD:
 		position = module.userVariable(8)
 		if up == False and position == 1:
 			up = True
-			print("\nSample up.")
-			print("Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
+			print("\nSample UP. Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
 			startTime = time.time()
 		if up == True and position == 1:
 			elapsedTime = round(time.time() - startTime,1)
@@ -200,8 +203,7 @@ while m < TD:
 		if up == True and position == 0:
 			up = False
 			n += 1
-			print("\nSample down.")
-			print("Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
+			print("\nSample DOWN. Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
 			if TD == 1:
 				print(str("Completed scan " + str(n) + " of " + str(NS) + " at magnetic field strength of " + str(BSample) + " mT"))
 			else:
@@ -217,7 +219,7 @@ while m < TD:
 			rampSpeed = int(speed*eval(ramp))
 			module.setTargetSpeed(rampSpeed)
 			print('\rTarget speed = ' + str(rampSpeed), end = ' ')
-		time.sleep(0.05)
+		time.sleep(0.02)
 		
 # Once sequence is complete for all magnetic field strengths:
 # Set motor distance back to zero for safety
