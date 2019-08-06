@@ -56,6 +56,7 @@ BSample = float(GETPAR("CNST 20"))	#Target field strength (mT)
 ns = int(GETPAR("NS"))			#Number of scans
 dim = int(GETPAR("PARMODE"))		#Spectrum dimensions (1D, 2D...)
 motionTime = float(GETPAR("D 10"))	#Time taken for sample motion (s)
+temp = float(GETPAR("TE"))		#Sample temperature (K)
 
 #Get ramp equation used for variable speed experiments
 if str(GETPAR("USERA1")) != "":
@@ -174,7 +175,7 @@ if (speed < 0)  or (speed > setup.maxSpeed):
 	
 #Call NMRShuttle.py with arguments 
 command = "python3.6 NMRShuttle.py "
-arguments = str(mode) + " " + str(stallSetting) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + str(distance) + " " + " '" + ramp + "'"
+arguments = str(mode) + " " + str(stallSetting) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + str(distance) + + " " + str(temp) + " " + " '" + ramp + "'"
 
 print(command + arguments)
 proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
