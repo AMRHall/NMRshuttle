@@ -36,28 +36,30 @@ class dyneo(object):
     
     
     def setTemp(self,setpoint):
-        templist = []
-        avgtemp = 0
-        
         self.dyneo.write(bytes('out_sp_00 ' + str(setpoint) + '\r', 'utf-8'))
-        
         print('Set temperature: ' + str(setpoint) + u'\N{DEGREE SIGN}C')
-
-        while avgtemp < setpoint-0.1 or avgtemp > setpoint+0.1:
+        
+        temp = self.readTemp()
+        
+        n = 0
+        while n < 60:
             temp = self.readTemp()
-            templist.append(temp)
-            templist = templist[-25:]
-            avgtemp = sum(templist)/len(templist)
             print('\rActual temperature: ' + str(temp) + u'\N{DEGREE SIGN}C', end = ' ')
+            if temp > setpoint-0.1 and temp < setpoint+0.1:
+                n += 1
+            else:
+                n = 0
             time.sleep(1)
     
         print('\nSetpoint reached')
 
 
-    def checkStatus(self):
+    def checkErrors(self):
         self.dyneo.write(b'status\r')
         status = str(self.dyneo.readline()).strip("b'\\r\\n")
-        return status
+        if status[0] == '-':
+            errorMsg = status
+        return errorMsg
     
     def close(self):
         self.dyneo.close()
