@@ -54,12 +54,10 @@ class dyneo(object):
         print('\nSetpoint reached')
 
 
-    def checkErrors(self):
+    def checkStatus(self):
         self.dyneo.write(b'status\r')
         status = str(self.dyneo.readline()).strip("b'\\r\\n")
-        if status[0] == '-':
-            errorMsg = status
-        return errorMsg
+        return statys
     
     def close(self):
         self.dyneo.close()
