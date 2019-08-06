@@ -54,6 +54,10 @@ class NMRShuttle(object):
   offsetDist =        20.0
   
   
+ # Temperature equilibriation time (s):
+  equilibTime =       120
+  
+  
 # *****************************
 # THE FOLLOWING PARAMETERS CAN BE DANGEROUS IF CHANGED. DO NOT ALTER THEM UNLESS YOU KNOW WHAT YOU ARE DOING!
 # *****************************
