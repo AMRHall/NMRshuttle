@@ -20,7 +20,9 @@ from PyTrinamic.modules.TMCM_1160 import TMCM_1160
 import time, datetime, math, signal, sys
 import numpy as np
 import sensorShield
+import julaboController
 
+'''
 # Define what to do if terminate signal recieved from Topspin
 def terminate(signal,frame):
 	timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
@@ -45,6 +47,10 @@ except:
 	print('sensorShield.py not installed')
 calcField = 'XXX'
 temp = 'XXX'
+'''
+
+# Open communications to the heater/chiller
+dyneo = julaboController.dyneo(port=setup.julaboPort)
 
 # Get field map values from file
 fieldMap = open('fieldMap.csv','r')
@@ -73,7 +79,8 @@ BSample = float(sys.argv[3])	   # Sample field strength (mT)
 speed = float(sys.argv[6])	   # Motor speed (cm/s)
 accel = float(sys.argv[7])	   # Acceleration (cm/s^2)
 dist = float(sys.argv[8])	   # Distance to move (cm)
-ramp = str(sys.argv[9])            # Equation for velocity ramp
+setpoint = float(sys.argv[9])      # Setpoint temperature (K)
+ramp = str(sys.argv[10])           # Equation for velocity ramp
 
 
 # Open communications with motor driver
@@ -164,6 +171,11 @@ NS = int(sys.argv[4])
 # Get number of 2D slices
 TD = int(sys.argv[5])
   
+# Set the heater/chiller to the right temperature and wait
+dyneo.switchOn()
+dyneo.setTemp(temp)
+time.sleep(setup.equilibTime)
+	
 # Check position of sample and wait until finished
 up = False
 newLine = False
@@ -181,11 +193,6 @@ while m < TD:
 			print("\nStall detected. Aborting acquisition.")
 			errflag += 1
 			break
-
-		try:
-			temp, calcField = readSensors() 
-		except:
-			pass
 		
 		#If terminate signal recieved from Topspin, safely stop motor
 		#signal.signal(1, terminate)
@@ -194,7 +201,7 @@ while m < TD:
 		position = module.userVariable(8)
 		if up == False and position == 1:
 			up = True
-			print("\nSample UP. Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
+			print("\nSample UP")
 			startTime = time.time()
 		if up == True and position == 1:
 			elapsedTime = round(time.time() - startTime,1)
@@ -203,7 +210,7 @@ while m < TD:
 		if up == True and position == 0:
 			up = False
 			n += 1
-			print("\nSample DOWN. Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
+			print("\nSample DOWN")
 			if TD == 1:
 				print(str("Completed scan " + str(n) + " of " + str(NS) + " at magnetic field strength of " + str(BSample) + " mT"))
 			else:
@@ -211,14 +218,15 @@ while m < TD:
 			if mode == 2:
 				print("\n")
 		if position == 2 and mode == 2:
-			if newLine == True:
-				print('')
-				newLine = False
-			z = (module.actualPosition()*(setup.direction*Circ))/NStep
-			Bz = float(B0/(1+((z/b)**a)))
-			rampSpeed = int(speed*eval(ramp))
-			module.setTargetSpeed(rampSpeed)
-			print('\rTarget speed = ' + str(rampSpeed), end = ' ')
+			while z < dist:
+				if newLine == True:
+					print('')
+					newLine = False
+				z = (module.actualPosition()*(setup.direction*Circ))/NStep
+				Bz = np.interp(z,distanceValues,fieldValues)
+				rampSpeed = int(speed*eval(ramp))
+				module.setTargetSpeed(rampSpeed)
+				print('\rTarget speed = ' + str(rampSpeed), end = ' ')
 		time.sleep(0.02)
 		
 # Once sequence is complete for all magnetic field strengths:
@@ -232,7 +240,8 @@ if errflag ==0:
 else:
 	print(str("\nSequence aborted with " + str(errflag) + " error(s) at " + str(timestamp) + "\n"))
 
-# Close serial port
+# Close serial ports
 myInterface.close()
+dyneo.close()
 
 sys.exit(errflag)
