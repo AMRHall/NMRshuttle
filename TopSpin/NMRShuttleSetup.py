@@ -54,6 +54,10 @@ class NMRShuttle(object):
   offsetDist =        20.0
   
   
+  
+ # Serial port for heater/chiller:
+  julaboPort =        '/dev/ttyACM2'
+  
  # Temperature equilibriation time (s):
   equilibTime =       120
   
