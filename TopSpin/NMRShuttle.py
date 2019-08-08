@@ -173,7 +173,7 @@ TD = int(sys.argv[5])
   
 # Set the heater/chiller to the right temperature and wait
 dyneo.switchOn()
-dyneo.setTemp(temp)
+dyneo.setTemp(setpoint-273.15)
 time.sleep(setup.equilibTime)
 	
 # Check position of sample and wait until finished
