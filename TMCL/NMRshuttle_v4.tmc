@@ -5,8 +5,8 @@
 //
 // SAP is for set axis parameter.
 // Note that our motor has 200 full steps per rotation
-// 1 full step = 256 microsteps
-// 1 rotation is approximately 25 cm (51200 steps)
+// 1 full step = 256 microsteps (with current step size)
+// 1 rotation is 51200 steps
 
 
 input0 = 0		            // configure motor input as UserVariable0
@@ -37,10 +37,7 @@ VECT 40, Inp1change	      //Set input1 as interupt vector 2
 SGP 40, 3, 2 			      //(1 =low-high)
 EI 40				            //Enable input1
 
-EI 255				         //Enable global interupts
-
 GIO input0, 0	    		   //read input0	
-
 
 loop:
    WAIT TICKS, 0, 100
