@@ -1,10 +1,14 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jun  7 14:21:04 2019
-
-@author: amrh1c18
-"""
+#
+# sensorShield.py
+# Version 1.1, Jun 2019
+#
+# Andrew Hall 2019 (c)
+# a.m.r.hall@soton.ac.uk
+#
+# Python script for measuring temperature and field strength data
+# using PT100 temperature sensors and 2Dex hall sensor
+# Also includes graphical user interface.
+#
 
 import tkinter as tk
 from tkinter import filedialog
@@ -13,40 +17,43 @@ import datetime as dt
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
-import os
+import sys
 
 
 class sensorShield(object):
     n = 0
     
-    def __init__(self, port='/dev/ttyACM1', baud=9600): 
+    offset = 0.0
+    sensitivity = 51.5
+
+    
+    def __init__(self, port='/dev/ttyACM2', baud=9600): 
         # Open connection to arduino
-        if os.path.exists(port) == True:
-            self.sens = serial.Serial(port, baud)
-            print("Opened connection to sensors")
-        else:
-            print("Serial port not found")
-            return
+        self.sens = serial.Serial(port, baud, timeout=0.1)
+        print("Opened connection to sensors")
         # Clear input buffer from Arduino
         print(self.sens.read_all())
-
         
     def clearBuffer(self):
         print(self.sens.read_all())
         
     def readSensors(self):
-        rawData = str(self.sens.readline())
-        if rawData[2] == "{" and len(rawData) > 24:
-            data = rawData.strip("b'{ }\\r\\n").split(", ")
-            self.PT100_1 = float(data[0])
-            self.PT100_2 = float(data[1])
-            self.PT100_3 = float(data[2])
-            self.hallSens = float(data[3])
-            data = (str(self.PT100_1) + ", " + str(self.PT100_2) + ", " + str(self.PT100_3) + ", " + str(self.hallSens))           
-            self.n += 1
-            return data
-        else:
-            print(rawData.strip("b'{ }\\r\\n")) 
+        data = None
+        buffer = self.sens.readlines()
+        for line in buffer:
+           rawData = str(line)
+           if rawData[2] == "{" and len(rawData) > 24:
+                data = rawData.strip("b'{ }\\r\\n").split(", ")
+                self.PT100_1 = float(data[0])
+                self.PT100_2 = float(data[1])
+                self.PT100_3 = float(data[2])
+                self.hallSens = round(1000*((float(data[3])-self.offset)/self.sensitivity),2)
+                data = (str(self.PT100_1) + ", " + str(self.PT100_2) + ", " + str(self.PT100_3) + ", " + str(self.hallSens))           
+                self.n += 1
+           if data != None:
+                return data
+       # else:
+       #     print(rawData.strip("b'{ }\\r\\n")) 
             
     def openFile(self, interval, path):
         self.outData = open(path, 'w+')
@@ -59,7 +66,7 @@ class sensorShield(object):
             outStr = str(dt.datetime.now()) 
             outStr += ', '
             if variables[0] == 1:
-                outStr += str(self.PT100_1)
+                outStr +=str(self.PT100_1)
             outStr += ', '
             if variables[1]  == 1:
                 outStr +=str(self.PT100_2)
@@ -223,4 +230,4 @@ class gui(object):
 
     def exitProgram(self):
         self.root.destroy()
-        return
+        sys.exit()
