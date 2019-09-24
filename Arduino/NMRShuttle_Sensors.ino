@@ -31,7 +31,7 @@ Adafruit_MAX31865 Tsensor2 = Adafruit_MAX31865(9, 11, 12, 13);
 Adafruit_MAX31865 Tsensor3 = Adafruit_MAX31865(8, 11, 12, 13);
 Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
 
-#define debug true
+#define debug false
 
 // Set some constants for the temperature sensors
   // The value of the Rref resistor. Use 430.0 for PT100 and 4300.0 for PT1000
@@ -42,16 +42,14 @@ Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
 // Set some constants for the ADC
   // The multiplier used to convert from 16 bit integer to voltage. Be sure to update this value based on the gain settings!
   #define MULTIPLIER    0.015625
-  // The nominal sensitivit of the hall probe sensor (mV/T). 
-  #define SENSITIVITY   51.5
-  // The zero-field offset of the hall probe sensor (mV).
-  #define OFFSET        0.0
-  // The value of the resistor used for current measurement (Ohms).
-  #define RCURRENT      218.96
 
 
 void setup() {
   Serial.begin(9600);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
+  
   Serial.println("Adafruit MAX31865 PT100 & Adafruit ADS1115 ADC Sensor Test");
   Serial.println("ADC Range: +/- 0.512V (8x gain, 1 bit = 0.015625mV)");
   
@@ -75,123 +73,58 @@ void setup() {
   ads.begin();
 }
 
+void diagnoseFault(uint8_t fault) {
+  if (fault & MAX31865_FAULT_HIGHTHRESH) {
+    Serial.println(":  RTD High Threshold"); 
+  }
+  if (fault & MAX31865_FAULT_LOWTHRESH) {
+    Serial.println(":  RTD Low Threshold"); 
+  }
+  if (fault & MAX31865_FAULT_REFINLOW) {
+    Serial.println(":  REFIN- > 0.85 x Bias"); 
+  }
+  if (fault & MAX31865_FAULT_REFINHIGH) {
+    Serial.println(":  REFIN- < 0.85 x Bias - FORCE- open"); 
+  }
+  if (fault & MAX31865_FAULT_RTDINLOW) {
+    Serial.println(":  RTDIN- < 0.85 x Bias - FORCE- open"); 
+  }
+  if (fault & MAX31865_FAULT_OVUV) {
+    Serial.println(":  Under/Over voltage"); 
+  }
+}
+
 
 void loop() {
   Serial.flush();
-  
-// Read temperature sensor 1
-  uint16_t rtd1 = Tsensor1.readRTD();
-  if (debug == true) {
-    Serial.print("Sensor 1 RTD value: "); Serial.println(rtd1);
-    float ratio1 = rtd1;
-    ratio1 /= 32768;
-    Serial.print("Sensor 1 Ratio = "); Serial.println(ratio1,8);
-    Serial.print("Sensor 1 Resistance = "); Serial.println(RREF*ratio1,8);
-    Serial.print("Sensor 1 Temperature = "); Serial.println(Tsensor1.temperature(RNOMINAL, RREF));
-  }
-  // Check and print any faults
+
+
+  // Check and print any faults in temperature sensors
   uint8_t fault1 = Tsensor1.readFault();
   if (fault1) {
     Serial.print("Sensor 1 Fault 0x"); Serial.print(fault1, HEX);
-    if (fault1 & MAX31865_FAULT_HIGHTHRESH) {
-      Serial.println(":  RTD High Threshold"); 
-    }
-    if (fault1 & MAX31865_FAULT_LOWTHRESH) {
-      Serial.println(":  RTD Low Threshold"); 
-    }
-    if (fault1 & MAX31865_FAULT_REFINLOW) {
-      Serial.println(":  REFIN- > 0.85 x Bias"); 
-    }
-    if (fault1 & MAX31865_FAULT_REFINHIGH) {
-      Serial.println(":  REFIN- < 0.85 x Bias - FORCE- open"); 
-    }
-    if (fault1 & MAX31865_FAULT_RTDINLOW) {
-      Serial.println(":  RTDIN- < 0.85 x Bias - FORCE- open"); 
-    }
-    if (fault1 & MAX31865_FAULT_OVUV) {
-      Serial.println(":  Under/Over voltage"); 
-    }
+    diagnoseFault(fault1);
     Tsensor1.clearFault();
   }
-  
-// Read temperature sensor 2 
-  uint16_t rtd2 = Tsensor2.readRTD();
-  if (debug == true) {
-    Serial.print("Sensor 2 RTD value: "); Serial.println(rtd2);
-    float ratio2 = rtd2;
-    ratio2 /= 32768;
-    Serial.print("Sensor 2 Ratio = "); Serial.println(ratio2,8);
-    Serial.print("Sensor 2 Resistance = "); Serial.println(RREF*ratio2,8);
-    Serial.print("Sensor 2 Temperature = "); Serial.println(Tsensor2.temperature(RNOMINAL, RREF));
-  }
-  // Check and print any faults
+    
   uint8_t fault2 = Tsensor2.readFault();
   if (fault2) {
     Serial.print("Sensor 2 Fault 0x"); Serial.print(fault2, HEX);
-    if (fault2 & MAX31865_FAULT_HIGHTHRESH) {
-      Serial.println(":  RTD High Threshold"); 
-    }
-    if (fault2 & MAX31865_FAULT_LOWTHRESH) {
-      Serial.println(":  RTD Low Threshold"); 
-    }
-    if (fault2 & MAX31865_FAULT_REFINLOW) {
-      Serial.println(":  REFIN- > 0.85 x Bias"); 
-    }
-    if (fault2 & MAX31865_FAULT_REFINHIGH) {
-      Serial.println(":  REFIN- < 0.85 x Bias - FORCE- open"); 
-    }
-    if (fault2 & MAX31865_FAULT_RTDINLOW) {
-      Serial.println(":  RTDIN- < 0.85 x Bias - FORCE- open"); 
-    }
-    if (fault2 & MAX31865_FAULT_OVUV) {
-      Serial.println(":  Under/Over voltage"); 
-    }
+    diagnoseFault(fault2);
     Tsensor2.clearFault();
   }
-
-// Read temperature sensor 3
-  uint16_t rtd3 = Tsensor3.readRTD();
-  if (debug == true) {
-    Serial.print("Sensor 3 RTD value: "); Serial.println(rtd3);
-    float ratio3 = rtd3;
-    ratio3 /= 32768;
-    Serial.print("Sensor 3 Ratio = "); Serial.println(ratio3,8);
-    Serial.print("Sensor 3 Resistance = "); Serial.println(RREF*ratio3,8);
-    Serial.print("Sensor 3 Temperature = "); Serial.println(Tsensor3.temperature(RNOMINAL, RREF));
-  }
-  // Check and print any faults
+  
   uint8_t fault3 = Tsensor3.readFault();
   if (fault3) {
     Serial.print("Sensor 3 Fault 0x"); Serial.print(fault3, HEX);
-    if (fault3 & MAX31865_FAULT_HIGHTHRESH) {
-      Serial.println(":  RTD High Threshold"); 
-    }
-    if (fault3 & MAX31865_FAULT_LOWTHRESH) {
-      Serial.println(":  RTD Low Threshold"); 
-    }
-    if (fault3 & MAX31865_FAULT_REFINLOW) {
-      Serial.println(":  REFIN- > 0.85 x Bias"); 
-    }
-    if (fault3 & MAX31865_FAULT_REFINHIGH) {
-      Serial.println(":  REFIN- < 0.85 x Bias - FORCE- open"); 
-    }
-    if (fault3 & MAX31865_FAULT_RTDINLOW) {
-      Serial.println(":  RTDIN- < 0.85 x Bias - FORCE- open"); 
-    }
-    if (fault3 & MAX31865_FAULT_OVUV) {
-      Serial.println(":  Under/Over voltage"); 
-    }
+    diagnoseFault(fault3);
     Tsensor3.clearFault();
   }
 
-// Read ADC
+
+  // Read ADC
   int16_t adcValue;
   float adcVoltage;
-
-  int16_t currValue;
-  float current;
-
-  float fieldStrength;
   
   adcValue = ads.readADC_Differential_0_1();
   adcVoltage = adcValue * MULTIPLIER;
@@ -204,21 +137,14 @@ void loop() {
     adcVoltage = adcValue * MULTIPLIER / 2;
     ads.setGain(GAIN_EIGHT);
   }
-
-  currValue = ads.readADC_Differential_2_3();
-  current = (-currValue * MULTIPLIER)/RCURRENT;
-
-  fieldStrength = 1000* (((adcVoltage/current)-OFFSET)/SENSITIVITY);
     
   if (debug == true) {
     Serial.print("Differential: "); Serial.println(adcValue); 
-    Serial.print("("); Serial.print(adcVoltage,4); Serial.println("mV)");
-    Serial.print("Current: "); Serial.print(current,4); Serial.println("mA");
-    Serial.print("Field strength: "); Serial.print(fieldStrength); Serial.println(" mT");
+    Serial.println("("); Serial.print(adcVoltage,4); Serial.println("mV)");
   }
   
-// Print output from sensors
-  Serial.print("{"); Serial.print(Tsensor1.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(Tsensor2.temperature(RNOMINAL, RREF)), Serial.print(", "); Serial.print(Tsensor3.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(fieldStrength); Serial.println("}");
-//  Serial.println();
-  delay(1000);
+  // Print output from sensors
+  Serial.print("{"); Serial.print(Tsensor1.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(Tsensor2.temperature(RNOMINAL, RREF)), Serial.print(", "); Serial.print(Tsensor3.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(adcVoltage,4); Serial.println("}");
+  //  Serial.println();
+  delay(500);
 }
