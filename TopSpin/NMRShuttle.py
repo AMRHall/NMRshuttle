@@ -1,6 +1,6 @@
 #
 # NMRshuttle.py
-# Version 3.0, Jul 2019
+# Version 3.1, Sep 2019
 #
 # Andrew Hall 2019 (c)
 # a.m.r.hall@soton.ac.uk
@@ -17,34 +17,17 @@ import NMRShuttleSetup
 import PyTrinamic
 from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
 from PyTrinamic.modules.TMCM_1160 import TMCM_1160
-import time, datetime, math, signal, sys
+import time, datetime, math, sys, select
 import numpy as np
 import sensorShield
 
-# Define what to do if terminate signal recieved from Topspin
-def terminate(signal,frame):
+# Define what to do if terminate signal recieved
+def terminate():
 	timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-	print(str("\nSequence terminated by Topspin at " + str(timestamp)))
+	print(str("Sequence terminated at " + str(timestamp)))
 	myInterface.close()
-	sys.exit(-1)
-'''
-def readSensors():
-	sens.readSensors()
-	hallSens = sens.hallSens
-	temp = sens.PT100_1
-	sensPos = np.interp(hallSens,fieldValues[::-1],distanceValues[::-1])	
-	calcPos = sensPos - setup.offsetDist
-	calcField = round(np.interp(calcPos,distanceValues,fieldValues),1)
-	return temp, calcField
-				      
-# Open sensors
-try:
-	sens = sensorShield.sensorShield()
-except:
-	print('sensorShield.py not installed')
-calcField = 'XXX'
-temp = 'XXX'
-'''
+	sys.exit(1)
+
 # Get field map values from file
 fieldMap = open('fieldMap.csv','r')
 fieldMapValues = fieldMap.readlines()
@@ -84,7 +67,6 @@ module = TMCM_1160(myInterface)
 print("\n")
 
 # Reset all error flags
-errflag = 0
 module.setUserVariable(9,0)	#Clear motor error flags
 #module.setUserVariable(8,0)	#Set position to 'down'
 
@@ -174,27 +156,24 @@ while m < TD:
 		# Check for errors in motor
 		if module.digitalInput(10) == 0:		#Shutdown error from light gate
 			print("\nEmergency stop detected. Aborting acquisition.")
-			errflag += 1
-			break
+			terminate()
 		elif module.statusFlags() != 0:       #Stall detected
 			print("\nStall detected. Aborting acquisition.")
-			errflag += 1
-			break
+			terminate()
 
-						
-		#try:
-		#	temp, calcField = readSensors()
-		#except:
-		#	pass
 		
 		#If terminate signal recieved from Topspin, safely stop motor
-		#signal.signal(1, terminate)
+		for sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+			line = sys.stdin.readline()
+			if line == "STOP":
+				print("\nAquisition aborted by Topspin.")
+				terminate()
 	
 		#Check sample position
 		position = module.userVariable(8)
 		if up == False and position == 1:
 			up = True
-			print("\nSample UP.")# Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
+			print("\nSample UP.")
 			startTime = time.time()
 		if up == True and position == 1:
 			elapsedTime = round((time.time() - startTime),1)
@@ -203,7 +182,7 @@ while m < TD:
 		if up == True and position == 0:
 			up = False
 			n += 1
-			print("\nSample DOWN.")# Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
+			print("\nSample DOWN.")
 			if TD == 1:
 				print(str("Completed scan " + str(n) + " of " + str(NS) + " at magnetic field strength of " + str(BSample) + " mT"))
 			else:
@@ -227,12 +206,9 @@ module.setUserVariable(1,0)
 
 # Print completion message
 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-if errflag ==0:
-	print(str("\nSequence successfully completed at " + str(timestamp)))
-else:
-	print(str("\nSequence aborted with " + str(errflag) + " error(s) at " + str(timestamp) + "\n"))
+print(str("\nSequence successfully completed at " + str(timestamp)))
 
 # Close serial port
 myInterface.close()
 
-sys.exit(errflag)
+sys.exit(0)
