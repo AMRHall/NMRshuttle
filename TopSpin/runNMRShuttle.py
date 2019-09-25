@@ -12,8 +12,7 @@
 
 
 #Import libraries
-import os
-import math
+import os, math, time
 import NMRShuttleSetup
 import subprocess
 
@@ -49,6 +48,8 @@ for i in fieldMapValues:
 	distanceValues.append(float(value[0]))
 	fieldValues.append(float(value[1]))
 
+fieldMap.close()
+
 #Get parameters from TopSpin and NMRShuttleSetup.py
 mode = int(GETPAR("CNST 11"))		#Operation mode: 1=Constant speed, 2=Variable speed, 3=Constant time
 stallSetting = int(GETPAR("CNST 12"))	#Sets which stall guard settings from setup file to use
@@ -56,6 +57,7 @@ BSample = float(GETPAR("CNST 20"))	#Target field strength (mT)
 ns = int(GETPAR("NS"))			#Number of scans
 dim = int(GETPAR("PARMODE"))		#Spectrum dimensions (1D, 2D...)
 motionTime = float(GETPAR("D 10"))	#Time taken for sample motion (s)
+setpoint = float(GETPAR("TE"))		#Temperature (K)
 
 #Get ramp equation used for variable speed experiments
 if str(GETPAR("USERA1")) != "":
@@ -92,7 +94,6 @@ if BSample == setup.lowFieldCoil_Field:
 	distance = setup.lowFieldCoil_Dist
 else:
 	distance = interp(BSample,fieldValues[::-1],distanceValues[::-1])
-print(distance)
 if (distance < 0) or (distance > setup.maxHeight):
 	ERRMSG("Field strength out of range! (CNST20)", modal=1, title="NMR Shuttle Error")
 	ct = XCMD("STOP")
@@ -155,9 +156,9 @@ else:
 if stallSetting == 1:
 	print("Stall setting 1")
 elif stallSetting == 2:
-	print("Stall setting 1")
+	print("Stall setting 2")
 elif stallSetting == 3:
-	print("Stall setting 1")
+	print("Stall setting 3")
 else:
 	ERRMSG("Invalid value for stall setting (CNST12).", modal=1, title="NMR Shuttle Error")
 	EXIT()
@@ -169,31 +170,38 @@ if (speed < 0)  or (speed > setup.maxSpeed):
 	value = SELECT(message = "Speed out of range! (CNST30)\nIf using constant time mode, consider increasing the sample motion time (D10).", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
 	if value == 1 or value < 0:
   		EXIT()
-  
+  		
+#Set temperature and wait for ready
+command = "python3.6 Dyneo.py "
+arguments = str(round(setpoint-273, 2))
+print('\n'+ command + arguments + '\n')
+setTemp = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True) 
+setTemp.wait()
 
+print('\n Waiting for temperature to equilibriate...\n')
+time.sleep(setup.equilibTime)
+  
 	
 #Call NMRShuttle.py with arguments 
 command = "python3.6 NMRShuttle.py "
-arguments = str(mode) + " " + str(stallSetting) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + str(distance) + " " + " '" + ramp + "'"
+arguments = str(mode) + " " + str(stallSetting) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + str(distance) + " '" + ramp + "'"
 
 print(command + arguments)
 proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
 
 #Start acquisition
-ct = XCMD("ZG", wait=NO_WAIT_TILL_DONE)
-
+ct = XCMD("ZG")
+#proc.wait()
 
 #WORK IN PROGRESS:
 #Send terminate command to motor if acqusition fails
-if ct.getResult() == -1:
-	proc.send_signal(signal.SIGTERM)
-
+#if ct.getResult() == -1:
+#	proc.send_signal(signal.SIGTERM)
+	
 #Abort acquisition if motor returns an error
-return_code = proc.wait()
-if return_code == 0:
-  ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
-else:
-  ct = XCMD("STOP")
-  ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
-
-fieldMap.close()
+#return_code = proc.wait()
+#if return_code == 0:
+#  ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
+#else:
+#  ct = XCMD("STOP")
+#  ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
