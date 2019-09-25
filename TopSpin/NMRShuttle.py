@@ -19,8 +19,32 @@ from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
 from PyTrinamic.modules.TMCM_1160 import TMCM_1160
 import time, datetime, math, signal, sys
 import numpy as np
-				      
+import sensorShield
 
+# Define what to do if terminate signal recieved from Topspin
+def terminate(signal,frame):
+	timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+	print(str("\nSequence terminated by Topspin at " + str(timestamp)))
+	myInterface.close()
+	sys.exit(-1)
+'''
+def readSensors():
+	sens.readSensors()
+	hallSens = sens.hallSens
+	temp = sens.PT100_1
+	sensPos = np.interp(hallSens,fieldValues[::-1],distanceValues[::-1])	
+	calcPos = sensPos - setup.offsetDist
+	calcField = round(np.interp(calcPos,distanceValues,fieldValues),1)
+	return temp, calcField
+				      
+# Open sensors
+try:
+	sens = sensorShield.sensorShield()
+except:
+	print('sensorShield.py not installed')
+calcField = 'XXX'
+temp = 'XXX'
+'''
 # Get field map values from file
 fieldMap = open('fieldMap.csv','r')
 fieldMapValues = fieldMap.readlines()
@@ -36,7 +60,7 @@ for i in fieldMapValues:
 fieldMap.close()				  
 				      
 # Print information about script
-print("NMRshuttle.py\nVersion 3.0\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
+print("NMRshuttle.py\nVersion 3.0\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
 
 # Import default values from setup file
 setup = NMRShuttleSetup.NMRShuttle()
@@ -62,17 +86,19 @@ print("\n")
 # Reset all error flags
 errflag = 0
 module.setUserVariable(9,0)	#Clear motor error flags
+#module.setUserVariable(8,0)	#Set position to 'down'
+
 
 # Get operation mode
 mode = int(sys.argv[1]) # 1 = Constant velocity, 2 = Velocity sweep, 3 = Constant time
 
 # Get tube type and fetch appropriate stall guard settings
-tubeType = int(sys.argv[2]) # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
-if tubeType == 1:
+stallSetting = int(sys.argv[2]) # 1 = Standard glass tube, 2 = 5mm High pressure tube, 3 = 10mm High pressure tube
+if stallSetting == 1:
 	stallGuard = NMRShuttleSetup.stallGuard_1()
-elif tubeType == 2:
+elif stallSetting == 2:
 	stallGuard = NMRShuttleSetup.stallGuard_2()
-elif tubeType == 3:
+elif stallSetting == 3:
 	stallGuard = NMRShuttleSetup.stallGuard_3()
 else:
 	print("Invalid value for tube type.")
@@ -154,6 +180,12 @@ while m < TD:
 			print("\nStall detected. Aborting acquisition.")
 			errflag += 1
 			break
+
+						
+		#try:
+		#	temp, calcField = readSensors()
+		#except:
+		#	pass
 		
 		#If terminate signal recieved from Topspin, safely stop motor
 		#signal.signal(1, terminate)
@@ -162,23 +194,23 @@ while m < TD:
 		position = module.userVariable(8)
 		if up == False and position == 1:
 			up = True
-			print("\nSample UP")
+			print("\nSample UP.")# Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
 			startTime = time.time()
-		while up == True and position == 1:
-			elapsedTime = round(time.time() - startTime,1)
+		if up == True and position == 1:
+			elapsedTime = round((time.time() - startTime),1)
 			print('\rElapsed time = ' + str(elapsedTime), end = ' ')
 			newLine = True
 		if up == True and position == 0:
 			up = False
 			n += 1
-			print("\nSample DOWN")
+			print("\nSample DOWN.")# Field: " + str(calcField) + " mT, Temperature: " + str(temp) + u"\N{DEGREE SIGN}C")
 			if TD == 1:
 				print(str("Completed scan " + str(n) + " of " + str(NS) + " at magnetic field strength of " + str(BSample) + " mT"))
 			else:
 				print(str("Completed scan " + str(n) + "/" + str(NS) + " for 2D slice " + str(m) + "/" + str(TD) + " at magnetic field strength of " + str(BSample) + " mT"))
 			if mode == 2:
 				print("\n")
-		while position == 2 and mode == 2:
+		if position == 2 and mode == 2:
 			if newLine == True:
 				print('')
 				newLine = False
