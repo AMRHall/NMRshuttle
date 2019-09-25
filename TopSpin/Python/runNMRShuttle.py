@@ -1,6 +1,6 @@
 #
 # runNMRShuttle.py
-# Version 1.3, Jul 2019
+# Version 1.4, Sep 2019
 #
 # Andrew Hall 2019 (c)
 # a.m.r.hall@soton.ac.uk
@@ -12,9 +12,8 @@
 
 
 #Import libraries
-import os, math, time
+import os, math, time, subprocess
 import NMRShuttleSetup
-import subprocess
 
 setup = NMRShuttleSetup.NMRShuttle()
 
@@ -36,18 +35,15 @@ def interp(x, x_arr, y_arr):
 path = "/opt/topspin3.5pl7/"
 
 #Open file containing experimental field map
-fieldMap = open(path+'exp/stan/nmr/py/user/fieldMap.csv', 'r')
-
+fieldMap = open(path+'exp/stan/nmr/py/user/fieldMap.csv', 'r') #Change the path here to the correct location of the field map file
 distanceValues = []
 fieldValues = []
-
 fieldMapValues = fieldMap.readlines()
 del fieldMapValues[0]		#Remove header line
 for i in fieldMapValues:
 	value = i.split(',')
 	distanceValues.append(float(value[0]))
 	fieldValues.append(float(value[1]))
-
 fieldMap.close()
 
 #Get parameters from TopSpin and NMRShuttleSetup.py
@@ -174,34 +170,38 @@ if (speed < 0)  or (speed > setup.maxSpeed):
 #Set temperature and wait for ready
 command = "python3.6 Dyneo.py "
 arguments = str(round(setpoint-273, 2))
-print('\n'+ command + arguments + '\n')
-setTemp = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True) 
-setTemp.wait()
-
-print('\n Waiting for temperature to equilibriate...\n')
-time.sleep(setup.equilibTime)
-  
+try:
+	setTemp = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
+	print('\n'+ command + arguments + '\n')
+	setTemp.wait()
+	print('\n Waiting for temperature to equilibriate...\n')
+	time.sleep(setup.equilibTime)
+except:
+	ERRMSG("Dyneo heater/chiller not found. Temperature will not be controlled.", title="NMR Shuttle")
 	
 #Call NMRShuttle.py with arguments 
 command = "python3.6 NMRShuttle.py "
 arguments = str(mode) + " " + str(stallSetting) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + str(distance) + " '" + ramp + "'"
-
 print(command + arguments)
-proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
+proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True, stdin=subprocess.PIPE)
 
 #Start acquisition
-ct = XCMD("ZG")
-#proc.wait()
+zg = ZG(wait=NO_WAIT_TILL_DONE)
 
-#WORK IN PROGRESS:
-#Send terminate command to motor if acqusition fails
-#if ct.getResult() == -1:
-#	proc.send_signal(signal.SIGTERM)
-	
-#Abort acquisition if motor returns an error
-#return_code = proc.wait()
-#if return_code == 0:
-#  ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
-#else:
-#  ct = XCMD("STOP")
-#  ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
+
+#Send terminate to motor if acquisition fails/Abort acquisition if motor returns an error
+while True:
+	if zg.getResult() == 0:
+		proc.communicate(b'STOP')
+		if proc.poll() != 0:
+			ERRMSG("Acquistion stopped by Topspin.", title="NMR Shuttle")
+		else:
+			ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
+		EXIT()
+	elif proc.poll() == 0:
+		ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
+		EXIT()
+	elif proc.poll() == 1:
+		ct = XCMD("STOP")
+		ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
+		EXIT()
