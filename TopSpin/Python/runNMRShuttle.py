@@ -201,7 +201,7 @@ while True:
 	elif proc.poll() == 0:
 		ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
 		EXIT()
-	elif proc.poll() == 1:
+	elif proc.poll() > 0:
 		ct = XCMD("STOP")
 		ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
 		EXIT()
