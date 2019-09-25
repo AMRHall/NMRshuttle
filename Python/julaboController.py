@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 julaboController.py
-
 Author: Andrew Hall
 Version: 1.0
 Updated: 5th Aug 2019
-
 Script for remote control of Julabo heater/chiller circulator
 See https://www.julabo.com/sites/default/files/he-se_protocol_0.pdf for full 
 list of available commands.
-
 """
 
 import serial
@@ -38,20 +35,22 @@ class dyneo(object):
     def setTemp(self,setpoint):
         self.dyneo.write(bytes('out_sp_00 ' + str(setpoint) + '\r', 'utf-8'))
         print('Set temperature: ' + str(setpoint) + u'\N{DEGREE SIGN}C')
+        startTime = time.time()
         
         temp = self.readTemp()
         
         n = 0
         while n < 60:
             temp = self.readTemp()
-            print('\rActual temperature: ' + str(temp) + u'\N{DEGREE SIGN}C', end = ' ')
+            print('\rActual temperature: ' + str(temp) + u'\N{DEGREE SIGN}C', end=' ')
             if temp > setpoint-0.1 and temp < setpoint+0.1:
                 n += 1
             else:
                 n = 0
             time.sleep(1)
     
-        print('\nSetpoint reached')
+        elapsedTime = round(time.time() - startTime)
+        print('\nSetpoint reached. Elapsed time: ' + str(elapsedTime))
 
 
     def checkStatus(self):
