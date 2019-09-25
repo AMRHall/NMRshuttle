@@ -35,7 +35,7 @@ class NMRShuttle(object):
   accel =             22.74
 
   # Maximum motor speed (cm/s) (0...30.518 with default settings). This can be adapted by changing motor pulDiv setting or motor wheel diameter
-  maxSpeed =          30.518
+  maxSpeed =          30.5
 
   # Velocity ramp equation. Equation must be expressed as a Python math equation in terms of sample position (z) or local field strength (Bz)
   ramp =              "1-0.9/(1+math.exp(-0.001*(Bz-5000)))"
@@ -50,8 +50,19 @@ class NMRShuttle(object):
   lowFieldCoil_Dist = 150.0
   
   
-  # Offset distance of Hall sensor from sample
-  offsetDist =        20.0
+
+ # Offset distance of Hall sensor from sample
+  offsetDist =        33.83
+  
+  
+  
+ # Serial port for heater/chiller:
+  julaboPort =        '/dev/ttyACM1'
+  
+ # Temperature equilibriation time (s):
+  equilibTime =       120
+
+  
   
   
 # *****************************
@@ -84,16 +95,16 @@ class stallGuard_1(object):
 
 class stallGuard_2(object):
   # Stall guard setting 2
-  motorRunCurrent =         64
+  motorRunCurrent =         80
   motorStandbyCurrent =     16
   stallguard2Filter =       1
-  stallguard2Threshold =    4
+  stallguard2Threshold =    8
   stopOnStall =             1000
 
 class stallGuard_3(object):
   # Stall guard setting 3
-  motorRunCurrent =         80
-  motorStandbyCurrent =     16
+  motorRunCurrent =         128
+  motorStandbyCurrent =     48
   stallguard2Filter =       1
   stallguard2Threshold =    8
   stopOnStall =             1000
