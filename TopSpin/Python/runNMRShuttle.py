@@ -95,10 +95,11 @@ if (distance < 0) or (distance > setup.maxHeight):
 	ct = XCMD("STOP")
 	EXIT()
 
+print('\n\n----------------------------------------------------')
 
 #For modes 1 and 3, estimate the amount of time needed to complete sample motion. For constant time mode, calculate the speed that the motor needs to run at.
 if mode == 1:
-	print("\n\nConstant velocity mode")
+	print("Constant velocity mode")
 	if (accel * (speed/accel)**2) >= distance:
 		motionTime = 2 * math.sqrt(distance/accel)
 	else:
@@ -106,7 +107,7 @@ if mode == 1:
 	PUTPAR("D 10",str(motionTime))
 	
 elif mode == 2:		#NB. Calculations in this mode assume a high acceleration rate
-	print("\n\nVelocity sweep mode")
+	print("Velocity sweep mode")
 	motionTime = 0
 	Bz = setup.B0
 	z = 0
@@ -134,9 +135,9 @@ elif mode == 2:		#NB. Calculations in this mode assume a high acceleration rate
 		ERRMSG("Invalid equation for velocity sweep ramp.\nEquation must be expressed in terms of sample position (z) or local field strength (currField).", modal=1, title="NMR Shuttle Error")
 		EXIT()
 	PUTPAR("D 10",str(motionTime))
-	
+
 elif mode == 3:	
-	print("\n\nConstant time mode") 
+	print("Constant time mode") 
 	if 4 * distance > accel * (motionTime**2):
 		ERRMSG("Speed out of range! (CNST30)\nIncrease the sample motion time (D10).", modal=1, title="NMR Shuttle Error")
 		EXIT()
@@ -171,18 +172,19 @@ if (speed < 0)  or (speed > setup.maxSpeed):
 command = "python3.6 Dyneo.py "
 arguments = str(round(setpoint-273, 2))
 try:
-	setTemp = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
-	print('\n'+ command + arguments + '\n')
-	setTemp.wait()
-	print('\n Waiting for temperature to equilibriate...\n')
-	time.sleep(setup.equilibTime)
+	print(command + arguments)
+	setTemp = subprocess.check_call(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
 except:
 	ERRMSG("Dyneo heater/chiller not found. Temperature will not be controlled.", title="NMR Shuttle")
+else:
+	setTemp.wait()
+	print(' Waiting for temperature to equilibriate...\n')
+	time.sleep(setup.equilibTime)
 	
 #Call NMRShuttle.py with arguments 
 command = "python3.6 NMRShuttle.py "
 arguments = str(mode) + " " + str(stallSetting) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + str(distance) + " '" + ramp + "'"
-print(command + arguments)
+print(command + arguments + '\n')
 proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True, stdin=subprocess.PIPE)
 
 #Start acquisition
