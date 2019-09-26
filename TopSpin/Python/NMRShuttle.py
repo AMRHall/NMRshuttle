@@ -44,7 +44,7 @@ for i in fieldMapValues:
 fieldMap.close()				  
 				      
 # Print information about script
-print("NMRshuttle.py\nVersion 3.0\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n\n\n")
+print("NMRshuttle.py\nVersion 3.0\nThis program is for controlling a NMR low field shuttle using a TMCM-1060 or TMCM-1160 motor.\nCopyright (c) Andrew Hall, 2019\nFor further details see https://github.com/AMRHall/NMR_Shuttle/blob/master/README.md\n")
 
 # Import default values from setup file
 setup = NMRShuttleSetup.NMRShuttle()
@@ -62,7 +62,7 @@ ramp = str(sys.argv[9])            # Equation for velocity ramp
 # Open communications with motor driver
 PyTrinamic.showInfo()
 for device in list_ports.comports():
-	if device.manufacturer == 'Trinamic':
+	if device.description == 'Trinamic Stepper Device':
 		port = device.device
 try:
 	myInterface = serial_tmcl_interface(port)
@@ -74,7 +74,7 @@ print("\n")
 
 # Reset all error flags
 module.setUserVariable(9,0)	#Clear motor error flags
-#module.setUserVariable(8,0)	#Set position to 'down'
+module.setUserVariable(8,0)	#Set position to 'down'
 
 
 # Get operation mode
