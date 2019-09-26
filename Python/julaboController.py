@@ -9,12 +9,19 @@ See https://www.julabo.com/sites/default/files/he-se_protocol_0.pdf for full
 list of available commands.
 """
 
-import serial
-import time
+import serial, time, sys
+import serial.tools.list_ports as list_ports
 
 class dyneo(object):
     def __init__(self,port='COM4'):
-        self.dyneo = serial.Serial(port=port, baudrate=4800, bytesize=7, parity=serial.PARITY_EVEN, stopbits=1, timeout=0.1)
+        for device in list_ports.comports():
+                if device.manufacturer == 'Julabo':
+                        port = device.device
+        try:
+                self.dyneo = serial.Serial(port=port, baudrate=4800, bytesize=7, parity=serial.PARITY_EVEN, stopbits=1, timeout=0.1)
+        except:
+                print('Motor driver not found')
+                sys.exit()
     
     
     def switchOn(self):
@@ -56,7 +63,8 @@ class dyneo(object):
     def checkStatus(self):
         self.dyneo.write(b'status\r')
         status = str(self.dyneo.readline()).strip("b'\\r\\n")
-        return statys
+        return status
     
     def close(self):
         self.dyneo.close()
+        sys.exit()
