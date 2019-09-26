@@ -20,6 +20,7 @@ from PyTrinamic.modules.TMCM_1160 import TMCM_1160
 import time, datetime, math, sys, select
 import numpy as np
 import sensorShield
+import serial.tools.list_ports as list_ports
 
 # Define what to do if terminate signal recieved
 def terminate():
@@ -60,9 +61,14 @@ ramp = str(sys.argv[9])            # Equation for velocity ramp
 
 # Open communications with motor driver
 PyTrinamic.showInfo()
-#PyTrinamic.showAvailableComPorts()
-
-myInterface = serial_tmcl_interface(setup.serial)
+for device in list_ports.comports():
+	if device.manufacturer == 'Trinamic':
+		port = device.device
+try:
+	myInterface = serial_tmcl_interface(port)
+except:
+        print('Motor driver not found')
+        terminate()
 module = TMCM_1160(myInterface)
 print("\n")
 
