@@ -1,6 +1,5 @@
-#
+
 # sensorShield.py
-# Version 1.1, Jun 2019
 #
 # Andrew Hall 2019 (c)
 # a.m.r.hall@soton.ac.uk
@@ -9,27 +8,36 @@
 # using PT100 temperature sensors and 2Dex hall sensor
 # Also includes graphical user interface.
 #
+# Sept 2019
+version = 'v1.2'
 
 import tkinter as tk
 from tkinter import filedialog
-import serial
+import serial, sys, time
 import datetime as dt
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
-import sys
+import serial.tools.list_ports as list_ports
 
 
 class sensorShield(object):
-    n = 0
+    startTime = 0
     
     offset = 0.0
     sensitivity = 51.5
 
-    
-    def __init__(self, port='/dev/ttyACM2', baud=9600): 
+
+    def __init__(self, baud=9600): 
         # Open connection to arduino
-        self.sens = serial.Serial(port, baud, timeout=0.1)
+        for device in list_ports.comports():
+            if device.serial_number == '55739323637351819251':
+                port = device.device
+        try:
+            self.sens = serial.Serial(port, baud, timeout=0.1)
+        except:
+            print('Sensor device not found')
+            sys.exit()
         print("Opened connection to sensors")
         # Clear input buffer from Arduino
         print(self.sens.read_all())
@@ -49,7 +57,6 @@ class sensorShield(object):
                 self.PT100_3 = float(data[2])
                 self.hallSens = round(1000*((float(data[3])-self.offset)/self.sensitivity),2)
                 data = (str(self.PT100_1) + ", " + str(self.PT100_2) + ", " + str(self.PT100_3) + ", " + str(self.hallSens))           
-                self.n += 1
            if data != None:
                 return data
        # else:
@@ -61,7 +68,8 @@ class sensorShield(object):
         self.n = interval - 1
     
     def writeData(self, interval, variables):
-        if self.n == interval:
+        elapsedTime = time.time() - self.startTime
+        if elapsedTime >= interval:
             print('Writing data to file...')
             outStr = str(dt.datetime.now()) 
             outStr += ', '
@@ -77,19 +85,19 @@ class sensorShield(object):
             if variables[3]  == 1:
                 outStr +=str(self.hallSens)
             self.outData.write(outStr + '\n')
-            self.n = 0
             self.outData.flush()
+            self.startTime = time.time()
 
 
         
 class gui(object):
     
-    def __init__(self, port='/dev/ttyACM1'):
+    def __init__(self):
         # Create Tkinter window
         self.root = tk.Tk()
         self.root.wm_title("Temperature and Field Strength Sensors")
-        
-        
+      
+
         # Buttons to select which sensors to measure
         self.var1 = tk.IntVar()
         button1 = tk.Checkbutton(master=self.root, text="PT100_1", variable=self.var1)
@@ -118,27 +126,40 @@ class gui(object):
         self.button5.grid(column=3, row=3)
         self.save = False
         
-        tk.Label(master=self.root, text="Data save interval:").grid(column=0, row=3, sticky='w')
+        tk.Label(master=self.root, text="Data save interval (s):").grid(column=0, row=3, sticky='w')
         self.var6 = tk.IntVar()
         entrybox1 = tk.Entry(master=self.root, width=5, textvariable=self.var6)
         entrybox1.grid(column=1, row=3, sticky='w')
         self.var6.set(10)
         
         tk.Label(master=self.root, text="File path for data:").grid(column=0, row=4, sticky='w')
-        self.entrybox2 = tk.Entry(master=self.root, width=40)
+        self.entrybox2 = tk.Entry(master=self.root, width=35)
         self.entrybox2.grid(column=1, row=4, columnspan=3, sticky='w')
         self.entrybox2.insert(10, "Sensor_data.csv")
         self.button6 = tk.Button(master=self.root, text="...", command=self.fileDirectory)
         self.button6.grid(column=3, row=4, sticky='w')
         
         button7 = tk.Button(master=self.root, text="EXIT", command=self.exitProgram)
-        button7.grid(column=3, row=5, pady=(15,0), sticky='e')
+        button7.grid(column=3, row=6, pady=(15,0), sticky='e')
+
 
         # Set up sensors and plot
-        self.sens=sensorShield(port=port)
+        self.sens=sensorShield()
         self.intialisePlot()
         self.sens.clearBuffer()
         
+
+        # Settings for Hall sensor calibration
+        tk.Label(master=self.root, text="Hall sensor offset:").grid(column=0, row=5, sticky='w')
+        self.entrybox3 = tk.Entry(master=self.root, width=10)
+        self.entrybox3.grid(column=1, row=5, sticky='w')
+        self.entrybox3.insert(10, self.sens.offset)
+
+        tk.Label(master=self.root, text="Hall sensor sensitivity:").grid(column=0, row=6, sticky='w')
+        self.entrybox4 = tk.Entry(master=self.root, width=10)
+        self.entrybox4.grid(column=1, row=6, sticky='w')
+        self.entrybox4.insert(10, self.sens.sensitivity)
+
         
         # Measure and update graph
         ani = animation.FuncAnimation(self.fig, self.animate, interval=5, blit=False)
@@ -165,7 +186,9 @@ class gui(object):
         self.Temp3 = []
         self.hallProbe = []
 
+
     def plot(self):
+
         # Add x and y to lists
         self.xs.append(dt.datetime.now().strftime('%H:%M:%S'))
         self.Temp1.append(self.sens.PT100_1)
@@ -173,12 +196,12 @@ class gui(object):
         self.Temp3.append(self.sens.PT100_3)
         self.hallProbe.append(self.sens.hallSens)
         
-        # Limit x and y lists to 100 items
-        self.xs = self.xs[-100:]
-        self.Temp1 = self.Temp1[-100:]
-        self.Temp2 = self.Temp2[-100:]
-        self.Temp3 = self.Temp3[-100:]
-        self.hallProbe = self.hallProbe[-100:]
+        # Limit x and y lists to 1500 items (around 5 min)
+        self.xs = self.xs[-1500:]
+        self.Temp1 = self.Temp1[-1500:]
+        self.Temp2 = self.Temp2[-1500:]
+        self.Temp3 = self.Temp3[-1500:]
+        self.hallProbe = self.hallProbe[-1500:]
         
         # Draw x and y lists
         self.ax1.clear()
@@ -211,6 +234,10 @@ class gui(object):
         self.ax1.legend(lns, labs, loc='upper center', bbox_to_anchor=(0.5, -0.35), ncol=4)
 
     def animate(self,i):
+        # Update Hall sensor settings
+        self.sens.offset = float(self.entrybox3.get())
+        self.sens.sensitivity = float(self.entrybox4.get())
+
         data = self.sens.readSensors()
         if self.save == True:
             self.sens.writeData(self.var6.get(), [self.var1.get(),self.var2.get(),self.var3.get(),self.var4.get()])
@@ -229,5 +256,6 @@ class gui(object):
         self.entrybox2.insert(10, path)
 
     def exitProgram(self):
+        self.sens.outData.close()
         self.root.destroy()
         sys.exit()
