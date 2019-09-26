@@ -133,7 +133,7 @@ class gui(object):
         self.var6.set(10)
         
         tk.Label(master=self.root, text="File path for data:").grid(column=0, row=4, sticky='w')
-        self.entrybox2 = tk.Entry(master=self.root, width=35)
+        self.entrybox2 = tk.Entry(master=self.root, width=40)
         self.entrybox2.grid(column=1, row=4, columnspan=3, sticky='w')
         self.entrybox2.insert(10, "Sensor_data.csv")
         self.button6 = tk.Button(master=self.root, text="...", command=self.fileDirectory)
@@ -256,6 +256,5 @@ class gui(object):
         self.entrybox2.insert(10, path)
 
     def exitProgram(self):
-        self.sens.outData.close()
         self.root.destroy()
         sys.exit()
