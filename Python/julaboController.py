@@ -13,15 +13,14 @@ import serial, time, sys
 import serial.tools.list_ports as list_ports
 
 class dyneo(object):
-    def __init__(self,port='COM4'):
+    def __init__(self):
         for device in list_ports.comports():
-                if device.manufacturer == 'Julabo':
+                if device.description == 'CORIO':
                         port = device.device
         try:
                 self.dyneo = serial.Serial(port=port, baudrate=4800, bytesize=7, parity=serial.PARITY_EVEN, stopbits=1, timeout=0.1)
         except:
-                print('Motor driver not found')
-                sys.exit()
+                sys.exit(1)
     
     
     def switchOn(self):
