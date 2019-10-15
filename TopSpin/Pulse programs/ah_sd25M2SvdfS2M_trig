@@ -1,0 +1,166 @@
+;2D pseudo-2D sd25M2SvdfS2M-trig
+;avance-version
+;Singlet destroy-M2D-vd list-T00 filter-S2M (use to measure TS)
+;uses 25-pulses composite 180 from JMR 284 (2017) 1-7
+;Including trigger I/O for NMR shuttle
+
+;$OWNER=amrh
+#include <Avance.incl>
+#include <Grad.incl>
+
+define delay d1p180
+"d1p180 = d1 + p1*2"
+define delay d125p
+"d125p = d1 - 25*p1"
+
+3m
+1 ze
+
+define delay dmot
+"dmot = vd - (d10*2 + cnst11 + cnst12 + cnst20 + cnst30 + cnst31)*0"
+
+; Shaped pulse to destroy singlet
+2 (p5:sp1 ph5):f1
+  10u pl1:f1
+
+  40u UNBLKGRAD
+  p16:gp1
+  2m 
+  (p1 ph3):f1
+  p19:gp2
+  2m 
+  (p1 ph3):f1
+  (p1 ph4):f1
+  p29:gp3
+  40u BLKGRAD
+  10m
+  lo to 2 times l3
+
+;pre delay
+  d7
+
+  (p1 ph30):f1
+	
+;M2S
+; first echo train 
+3 d125p rpp1
+ 
+  33 (p1*2 ph1^):f1
+	lo to 33 times 25
+
+  d125p rpp1
+  lo to 3 times l2
+ 
+  (p1 ph2):f1
+  d1p180
+
+; second echo train
+4 d125p
+
+	44 (p1*2 ph1^):f1
+	lo to 44 times 25
+
+  d125p rpp1
+  lo to 4 times l1
+
+; move sample to low field strength
+  1u setnmr3|8
+  10m trigne2
+  1u setnmr3^8
+
+; execute variable delay
+  dmot
+
+; move sample back to high field
+  1u setnmr3|9
+  10m trigne2
+  1u setnmr3^9
+
+; extra delay for positioning
+  d11
+
+;selection
+  40u UNBLKGRAD
+  p16:gp1
+  2m 
+  (p1 ph3):f1
+  p19:gp2
+  2m 
+  (p1 ph3):f1
+  (p1 ph4):f1
+  p29:gp3
+  40u BLKGRAD
+  10m
+
+;S2M
+; second echo train 
+5 d125p
+
+	55 (p1*2 ph1^):f1
+	lo to 55 times 25
+
+  d125p rpp1
+  lo to 5 times l1
+ 
+  d1p180
+  (p1 ph2):f1
+
+; first echo train
+6 d125p
+	 
+  66 (p1*2 ph1^):f1
+	lo to 66 times 25
+
+  d125p rpp1
+  lo to 6 times l2
+	
+go=2 ph31
+30m wr #0 if #0 zd ivd
+lo to 1 times td1
+exit
+
+
+ph1 = (65536) 0 0 21845 10923 21845 0 0 21845 10923 21845 21845 21845 43691 32768 43691 10923 10923 32768 21845 32768 21845 21845 43691 32768 43691
+ph2 = 0 0
+
+ph3 = (65536) 9965 9965 
+ph4 = 2 2
+ph30 = 1 3
+ph31 = 1 3
+
+ph5 = 0
+
+
+;l2 : n1 is 2*n2
+;l1 : n2
+;p1 : pw90 at high power
+;p7 : pw90 at low power
+;pl1 : power level high
+;pl2 : power level low
+
+;p5 : shape pulse length (1s)
+;sp1 : shape pulse (q ramp)
+;l3 : Singlet destroy repeatition (5 - 10)
+
+;d1: tau_J
+;d7 : pre-delay
+;vd : tau ZF (singlet relaxation time)
+
+
+
+; PARAMETERS USED BY SHUTTLE MOTOR:
+
+;d10 : sample motion time
+;d11 : positioning delay
+;cnst11 : Operation mode (1 = constant velocity, 2 = velocity sweep, 3 = constant time)
+;cnst12 : Stall guard settings (1 = standard glass tube, 2 = high pressure tube, 3 = temperature control system)
+;cnst20 : Low field strength (mT)
+;cnst30 : Target motor speed (optional) (Range: 2...2048. If this value is not set the motor will use the default speed).
+;cnst31 : Target motor acceleration (optional) (Range: 2...2048. If this value is not set the motor will use the default speed).
+
+
+
+; other parameters
+
+;define VDLIST
+

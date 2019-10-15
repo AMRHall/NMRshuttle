@@ -1,0 +1,104 @@
+;1D M2SdfS2M 
+;avance-version
+;M2D-vd list-T00 filter-S2M (use to measure TS)
+
+;$OWNER=ogj
+;$DIM=1D
+#include <Avance.incl>
+#include <Grad.incl>
+
+define delay d1p180
+"d1p180 = d1 + p1*2"
+
+3m
+1 ze
+2 d7
+
+10u pl1:f1
+(p1 ph30):f1
+	
+;M2S
+; first echo train 
+3 d1
+	 (p1 ph0):f1	
+	 (p1*2 ph1):f1
+	 (p1 ph0):f1
+ d1 ipp0 ipp1
+ lo to 3 times l2
+ 
+ (p1 ph2):f1
+ d1p180
+
+; second echo train
+4 d1 
+ 	 (p1 ph0):f1
+	 (p1*2 ph1):f1
+	 (p1 ph0):f1
+  d1 ipp0 ipp1
+  lo to 4 times l1
+
+d15
+
+;selection
+40u UNBLKGRAD
+p16:gp1
+2m 
+(p1 ph3):f1
+p19:gp2
+2m 
+(p1 ph3):f1
+(p1 ph4):f1
+p29:gp3
+40u BLKGRAD
+10m
+
+;S2M
+; second echo train 
+5 d1
+	 (p1 ph0):f1	
+	 (p1*2 ph1):f1
+	 (p1 ph0):f1
+  d1 ipp0 ipp1
+  lo to 5 times l1
+ 
+  d1p180
+  (p1 ph2):f1
+
+; first echo train
+6 d1 
+	 (p1 ph0):f1
+	 (p1*2 ph1):f1
+	 (p1 ph0):f1
+  d1 ipp0 ipp1
+  lo to 6 times l2
+	
+go=2 ph31
+30m mc #0 to 2 F0(zd)
+exit
+
+
+ph0 = 0 0 2 2 0 0 2 2 2 2 0 0 2 2 0 0 
+ph1 = 1 1 3 3 1 1 3 3 3 3 1 1 3 3 1 1
+ph2 = 0 0
+
+ph3 = (65536) 9965 9965 
+ph4 = 2 2
+ph30 = 1 3
+ph31 = 1 3
+
+;l2 : n1 is 2*n2
+;l1 : n2
+;p1 : pw90 at high power
+;p7 : pw90 at low power
+;pl1 : power level high
+;pl2 : power level low
+
+;d1: tau_J
+;d7 : pre-delay
+;d15 : tau ZF (singlet relaxation time)
+
+; other parameters
+
+
+
+
