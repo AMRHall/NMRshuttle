@@ -114,16 +114,20 @@ ph31 = 1 3
 
 ;d1: tau_J
 ;d7 : pre-delay
-;d10 : sample motion time
-;d11 : positioning delay
-
 ;vd : tau ZF (singlet relaxation time)
 
+
+
+; PARAMETERS USED BY SHUTTLE MOTOR:
+
+;d10 : sample motion time
+;d11 : positioning delay
 ;cnst11 : Operation mode (1 = constant velocity, 2 = velocity sweep, 3 = constant time)
-;cnst12 : Tube type (1 = standard 5mm glass tube, 2 =5 mm high pressure tube, 3 = 10mm high pressure tube)
+;cnst12 : Stall guard settings (1 = standard glass tube, 2 = high pressure tube, 3 = temperature control system)
 ;cnst20 : Low field strength (mT)
-;cnst30 : Target motor speed (optional) (Range: 2...30.5027. If this value is not set the motor will use the default speed).
-;cnst31 : Target motor acceleration (optional) (Range: 2...465.4. If this value is not set the motor will use the default speed).
+;cnst30 : Target motor speed (optional) (Range: 2...2048. If this value is not set the motor will use the default speed).
+;cnst31 : Target motor acceleration (optional) (Range: 2...2048. If this value is not set the motor will use the default speed).
+
 
 ; other parameters
 
