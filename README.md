@@ -30,7 +30,7 @@ __TopSpin__
   * ___M2SvdfS2M_trig___ (2D pulse sequence for T<sub>s</sub>  measurement with variable field shuttle)
   * ___sd25M2SvdfS2M___ (2D pulse sequence for T<sub>s</sub>  measurement with singlet destruction)
   * ___sd25M2SvdfS2M_trig___ (2D pulse sequence for T<sub>s</sub>  measurement with variable field shuttle and singlet destruction)
-  * ___t1ir_trig___ (2D T<sub>1</sub> pulse sequence).
+  * ___t1ir___ (2D T<sub>1</sub> pulse sequence).
   * ___t1ir_trig___ (2D T<sub>1</sub> pulse sequence with trigger for variable field shuttle).
   
 * __Python__ - These files should be loaded into the TopSpin python libary (accessed using _'edpy'_)
