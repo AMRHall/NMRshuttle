@@ -24,11 +24,14 @@ __TMCL__
 
 __TopSpin__
 * __Pulse Programs__ - These files should be loaded into the pulse program library (accessed using _'edpul'_)
-  * ___M2SvdfS2M___ (Pulse sequence for T<sub>s</sub> measurement)
-  * ___M2SvdfS2M_trig___ (Pulse sequence for T<sub>s</sub>  measurement with variable field shuttle)
-  * ___SD25M2SvdfS2M___ (Pulse sequence for T<sub>s</sub>  measurement with singlet destruction)
-  * ___SD25M2SvdfS2M_trig___ (Pulse sequence for T<sub>s</sub>  measurement with variable field shuttle and singlet destruction)
-  * ___T1ir_trig___ (T<sub>1</sub>  pulse sequence with trigger for variable field shuttle).
+  * ___M2SvdfS2M___ (2D pulse sequence for T<sub>s</sub> measurement)
+  * ___M2SvdfS2M-1d___ (1D pulse sequence for T<sub>s</sub> measurement)
+  * ___M2SvdfS2M-1d_trig___ (1D pulse sequence for T<sub>s</sub>  measurement with variable field shuttle)
+  * ___M2SvdfS2M_trig___ (2D pulse sequence for T<sub>s</sub>  measurement with variable field shuttle)
+  * ___sd25M2SvdfS2M___ (2D pulse sequence for T<sub>s</sub>  measurement with singlet destruction)
+  * ___sd25M2SvdfS2M_trig___ (2D pulse sequence for T<sub>s</sub>  measurement with variable field shuttle and singlet destruction)
+  * ___t1ir_trig___ (2D T<sub>1</sub> pulse sequence).
+  * ___t1ir_trig___ (2D T<sub>1</sub> pulse sequence with trigger for variable field shuttle).
   
 * __Python__ - These files should be loaded into the TopSpin python libary (accessed using _'edpy'_)
   * ___Dyneo.py___ (Python program for setting temperature of heater/chiller)
