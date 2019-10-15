@@ -13,7 +13,7 @@
 
 
 "p2=p1*2"
-"d11=30m"
+"d12=30m"
 
 
 "acqt0=-p1*2/3.1416"
@@ -21,7 +21,7 @@
 1 ze
 
 define delay dmot
-"dmot = vd - d10*2 - d9 + (cnst11 + cnst12 + cnst20 + cnst30 + cnst31)*0"
+"dmot = vd - (d10*2 - d11 + cnst11 + cnst12 + cnst20 + cnst30 + cnst31)*0"
 
 2 d1
   p2 ph1
@@ -40,11 +40,11 @@ define delay dmot
 	1u setnmr3^9
 
 	; extra delay for positioning
-	d9
+	d11
 
   p1 ph2
   go=2 ph31
-  d11 wr #0 if #0 ivd
+  d12 wr #0 if #0 ivd
   lo to 1 times td1
 exit
 
@@ -58,20 +58,25 @@ ph31=0 0 2 2 1 1 3 3
 ;p1 : f1 channel -  90 degree high power pulse
 ;p2 : f1 channel - 180 degree high power pulse
 ;d1 : relaxation delay; 1-5 * T1
-;d10: Motor motion time
-;d9 : positioning delay
-;d11: delay for disk I/O                             [30 msec]
+;d12: delay for disk I/O                             [30 msec]
 ;vd : variable delay, taken from vd-list
 ;ns: 8 * n
 ;ds: 4
 ;td1: number of experiments = number of delays in vd-list
 ;FnMODE: undefined
 
-;cnst11 : Operation mode (1 = constant velocity, 2 = velocity sweep, 3 =  constant time)
-;cnst12 : Tube type (1 = standard 5mm glass tube, 2 =5 mm high pressure tube, 3 = 10mm high pressure tube)
+
+; PARAMETERS USED BY SHUTTLE MOTOR:
+
+;d10 : sample motion time
+;d11 : positioning delay
+;cnst11 : Operation mode (1 = constant velocity, 2 = velocity sweep, 3 = constant time)
+;cnst12 : Stall guard settings (1 = standard glass tube, 2 = high pressure tube, 3 = temperature control system)
 ;cnst20 : Low field strength (mT)
-;cnst30 : Target motor speed (optional) (Range: 2...30.5027. If this value is not set the motor will use the default speed).
-;cnst31 : Target motor acceleration (optional) (Range: 2...465.4. If this value is not set the motor will use the default speed).
+;cnst30 : Target motor speed (optional) (Range: 2...2048. If this value is not set the motor will use the default speed).
+;cnst31 : Target motor acceleration (optional) (Range: 2...2048. If this value is not set the motor will use the default speed).
+
+
 
 ;define VDLIST
 
