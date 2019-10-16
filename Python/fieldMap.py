@@ -23,17 +23,33 @@ import sys, os
 
 class fieldMap(object):
 
-    def __init__(self,motorPort='/dev/ttyACM2',sensorPort='/dev/ttyACM1'):
-        # Open communications with motor driver
+    def __init__(self):
+         # Open communications with sensor Arduino board and motor
+        for device in list_ports.comports():
+            if device.serial_number == '55739323637351819251':
+                sensorPort = device.device
+            elif device.description == 'Trinamic Stepper Device':
+                motorPort = device.device
+        try:
+            self.sens = sensorShield.sensorShield(port=sensorPort, timeout=0.1)
+        except:
+            print('Sensor device not found')
+            sys.exit()
+        try:
+            myInterface = serial_tmcl_interface(motorPort)
+            self.module = TMCM_1160(myInterface)
+        except:
+            print('Motor device not found')
+            sys.exit()
+            
+        print("Opened connection to sensors")
         PyTrinamic.showInfo()
         PyTrinamic.showAvailableComPorts()
-       
-        myInterface = serial_tmcl_interface(motorPort)
-        self.module = TMCM_1160(myInterface)
+
         print("\n")
         
-        # Open communications with sensor Arduino board
-        self.sens = sensorShield.sensorShield(port=sensorPort)
+       
+        
       
         
         
