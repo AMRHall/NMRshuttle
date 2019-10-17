@@ -20,6 +20,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import optimize
 import sys, os
+import serial.tools.list_ports as list_ports
 
 class fieldMap(object):
 
