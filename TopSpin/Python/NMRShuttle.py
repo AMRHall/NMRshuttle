@@ -121,6 +121,7 @@ elif setup.model == 'TMCM-1060':
 else:
 	print("Invalid motor model.")
 	sys.exit(0)
+
 	
 module.setMaxVelocity(maxSpeed)
 module.setMaxAcceleration(accel)
