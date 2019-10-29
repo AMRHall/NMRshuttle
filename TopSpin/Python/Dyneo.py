@@ -1,9 +1,7 @@
 import julaboController
-import NMRShuttleSetup
 import sys, time
 
-setup = NMRShuttleSetup.NMRShuttle()
-dyneo = julaboController.dyneo(setup.julaboPort)
+dyneo = julaboController.dyneo()
 
 if sys.argv[1] == 'OFF':
 	dyneo.switchOff()
