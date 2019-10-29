@@ -27,15 +27,9 @@ class fieldMap(object):
     def __init__(self):
          # Open communications with sensor Arduino board and motor
         for device in list_ports.comports():
-            if device.serial_number == '55739323637351819251':
-                sensorPort = device.device
-            elif device.description == 'Trinamic Stepper Device':
+            if device.description == 'Trinamic Stepper Device':
                 motorPort = device.device
-        try:
-            self.sens = sensorShield.sensorShield(port=sensorPort, timeout=0.1)
-        except:
-            print('Sensor device not found')
-            sys.exit()
+        self.sens = sensorShield.sensorShield()
         try:
             myInterface = serial_tmcl_interface(motorPort)
             self.module = TMCM_1160(myInterface)
@@ -96,7 +90,7 @@ class fieldMap(object):
         
         # record field strength at different distances
         for x in self.distance:
-            steps = int((x*NStep)/Circ)
+            steps = int(-(x*NStep)/Circ)
             field = self.recordField(steps)
             self.fieldStrength.append(field)
             print('Distance: ' + str(round(x,1)) + 'cm, Field strength: ' + str(field) + 'mT')
@@ -114,7 +108,8 @@ class fieldMap(object):
         # Save data
         saveData = input("Save data (Y/N)? ")
         if saveData == 'y' or 'Y':
-            np.savetxt('fieldMap.csv',data,delimiter=',',newline='\n',header="Position (cm), Field Strength (mT)")
+            fileName = os.getcwd() + '/fieldMap.csv'
+            np.savetxt(fileName,data,delimiter=',',newline='\n',header="Position (cm), Field Strength (mT)")
         
             
     def recordField(self,steps):
