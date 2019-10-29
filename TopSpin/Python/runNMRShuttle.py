@@ -177,14 +177,13 @@ try:
 except:
 	ERRMSG("Dyneo heater/chiller not found. Temperature will not be controlled.", title="NMR Shuttle")
 else:
-	setTemp.wait()
 	print(' Waiting for temperature to equilibriate...\n')
 	time.sleep(setup.equilibTime)
 	
 #Call NMRShuttle.py with arguments 
 command = "python3.6 NMRShuttle.py "
 arguments = str(mode) + " " + str(stallSetting) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + str(distance) + " '" + ramp + "'"
-print(command + arguments + '\n')
+print(command + arguments)
 proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True, stdin=subprocess.PIPE)
 
 #Start acquisition
@@ -192,18 +191,15 @@ zg = ZG(wait=NO_WAIT_TILL_DONE)
 
 
 #Send terminate to motor if acquisition fails/Abort acquisition if motor returns an error
-while True:
-	if zg.getResult() == 0:
-		proc.communicate(b'STOP')
-		if proc.poll() != 0:
-			ERRMSG("Acquistion stopped by Topspin.", title="NMR Shuttle")
-		else:
-			ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
-		EXIT()
-	elif proc.poll() == 0:
-		ERRMSG("Acquistion completed successfully!", title="NMR Shuttle")
-		EXIT()
-	elif proc.poll() > 0:
+while zg.getResult() != 0:
+	if proc.poll() > 0:
 		ct = XCMD("STOP")
 		ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
 		EXIT()
+
+if proc.poll() != 0:
+	proc.communicate(b'STOP')
+	ERRMSG("Acquistion stopped by Topspin.", title="NMR Shuttle", modal=1)
+else:
+	ERRMSG("Acquistion completed successfully!", title="NMR Shuttle", modal=0)
+	
