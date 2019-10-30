@@ -15,10 +15,13 @@ import tkinter as tk
 from tkinter import filedialog
 import serial, sys, time
 import datetime as dt
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
 import serial.tools.list_ports as list_ports
+
+matplotlib.use('TkAgg')
 
 
 class sensorShield(object):
@@ -258,3 +261,5 @@ class gui(object):
     def exitProgram(self):
         self.root.destroy()
         sys.exit()
+
+gui()
