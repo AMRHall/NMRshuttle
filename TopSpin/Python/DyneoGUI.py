@@ -9,7 +9,6 @@ See https://www.julabo.com/sites/default/files/he-se_protocol_0.pdf for full
 list of available commands.
 """
 
-#import julaboController
 import tkinter as tk
 import datetime as dt
 import matplotlib
@@ -44,7 +43,10 @@ class dyneo(object):
     def readTemp(self):
         self.dyneo.write(b'in_pv_02\r')
         reply = str(self.dyneo.readline())
-        temp = float(reply.strip("b'\\r\\n"))
+        try:
+            temp = float(reply.strip("b'\\r\\n"))
+        except:
+            temp = -1
         return temp
     
     
@@ -88,7 +90,6 @@ class gui(object):
     
     def __init__(self):
         
-        self.temperature = 10.0
         self.on = False
         
         # Create Tkinter window
@@ -109,7 +110,7 @@ class gui(object):
         self.current_temp.grid(row=1, column=2)
         
         self.on_button = tk.Button(self.window, text="ON", fg="green", font="Arial 20 bold", padx=5, pady=5, command=self.switch_on).grid(row=2, column=0, columnspan=2, sticky="wnes")
-        self.off_button = tk.Button(self.window, text="OFF", fg="red", font="Arial 20 bold", padx=5, pady=5).grid(row=2, column=2, sticky="wnes")
+        self.off_button = tk.Button(self.window, text="OFF", fg="red", font="Arial 20 bold", padx=5, pady=5, command=self.switch_off).grid(row=2, column=2, sticky="wnes")
         
         self.initialise_plot()
         self.d = dyneo()      
@@ -171,18 +172,19 @@ class gui(object):
     
     def measure_temperature(self):
         self.temperature = self.d.readTemp()
-
-        self.temp_var.set(str(format(self.temperature, '.2f')) + " \u00B0C")
         
-        if self.temperature > float(self.set_temp.get())-0.1 and self.temperature < float(self.set_temp.get())+0.1:
+        if self.temperature == -1:
+            self.current_temp.config(fg="yellow")
+            self.temperature = '--.--'
+        elif self.temperature > float(self.set_temp.get())-0.1 and self.temperature < float(self.set_temp.get())+0.1:
             self.current_temp.config(fg="green")
             self.temp_var.set("--.-- \u00B0C")
         elif self.temperature > float(self.set_temp.get()):
             self.current_temp.config(fg="red")
         elif self.temperature < float(self.set_temp.get()):
             self.current_temp.config(fg="blue")
-        else:
-            self.current_temp.config(fg="yellow")
+
+        self.temp_var.set(str(self.temperature) + " \u00B0C")
     
     
     def animate(self, i):
@@ -190,5 +192,3 @@ class gui(object):
         
         if self.on == True:
             self.plot()
-        
-gui()
