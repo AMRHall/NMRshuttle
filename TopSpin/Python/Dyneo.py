@@ -10,6 +10,6 @@ if sys.argv[1] == 'OFF':
 else:
 	dyneo.switchOn()
 	time.sleep(1)
-	dyneo.setTemp(float(sys.argv[1]))
+	dyneo.setTemp_wait(float(sys.argv[1]))
 
 dyneo.close()
