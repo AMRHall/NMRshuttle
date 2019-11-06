@@ -4,9 +4,6 @@ Created on 21.03.2019
 '''
 
 class NMRShuttle(object):
-
-  # Serial port name for motor
-  serial =            "/dev/ttyACM0"
   
   # Motor model
   model =             "TMCM-1160"
@@ -50,14 +47,6 @@ class NMRShuttle(object):
   lowFieldCoil_Dist = 150.0
   
   
-
- # Offset distance of Hall sensor from sample
-  offsetDist =        33.83
-  
-  
-  
- # Serial port for heater/chiller:
-  julaboPort =        '/dev/ttyACM1'
   
  # Temperature equilibriation time (s):
   equilibTime =       120
