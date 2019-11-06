@@ -17,10 +17,13 @@ from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
 from PyTrinamic.modules.TMCM_1160 import TMCM_1160
 import time
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from scipy import optimize
 import sys, os
 import serial.tools.list_ports as list_ports
+
+matplotlib.use('TkAgg')
 
 class fieldMap(object):
 
