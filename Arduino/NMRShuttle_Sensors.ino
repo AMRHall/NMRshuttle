@@ -3,10 +3,8 @@
   PT100/P1000 RTD Sensor w/MAX31865 and for recording magnetic field
   with the LakeShore 2x-250-FA 2Dex Hall sensor and the Adafruit ADS1115
   Analogue to Digital converter.
-
   Designed specifically to work with the Adafruit RTD Sensor
   ----> https://www.adafruit.com/products/3328
-
   The Adafruit RTD sensor uses SPI to communicate, 4 pins are required to  
   interface (3 pins are shared bettween multiple boards)
   
@@ -15,7 +13,6 @@
   Adafruit invests time and resources providing this open source code, 
   please support Adafruit and open-source hardware by purchasing 
   products from Adafruit!
-
   Written by Limor Fried/Ladyada for Adafruit Industries. 
   Modified by Andrew Hall (University of Southampton)
   BSD license, all text above must be included in any redistribution
@@ -42,6 +39,12 @@ Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
 // Set some constants for the ADC
   // The multiplier used to convert from 16 bit integer to voltage. Be sure to update this value based on the gain settings!
   #define MULTIPLIER    0.015625
+
+// Set some constants for heater/chiller
+  // The maximum temperature value (corresponding to 5V signal)
+  #define DYNEOMAX    80
+  // The minimum temperature value (corresponding to 0V signal)
+  #define DYNEOMIN    -20
 
 
 void setup() {
@@ -142,9 +145,27 @@ void loop() {
     Serial.print("Differential: "); Serial.println(adcValue); 
     Serial.println("("); Serial.print(adcVoltage,4); Serial.println("mV)");
   }
+
+
+  // Read set temperature from heater/chiller
+  // read the input on analog pin 0:
+  int tempSetValue = analogRead(A0);
+  // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
+  float tempSetVoltage = tempSetValue * (5.0 / 1023.0);
+  // Convert the analog voltage to temperature (0V = -20degC, 5V = 80degC)
+  float tempSet = tempSetVoltage*(DYNEOMAX-DYNEOMIN)/5 + DYNEOMIN;
+
+  // Read actual temperature from heater/chiller
+  // read the input on analog pin 0:
+  int tempActualValue = analogRead(A0);
+  // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
+  float tempActualVoltage = tempActualValue * (5.0 / 1023.0);
+  // Convert the analog voltage to temperature (0V = -20degC, 5V = 80degC)
+  float tempActual = tempActualVoltage*(DYNEOMAX-DYNEOMIN)/5 + DYNEOMIN;
   
+    
   // Print output from sensors
-  Serial.print("{"); Serial.print(Tsensor1.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(Tsensor2.temperature(RNOMINAL, RREF)), Serial.print(", "); Serial.print(Tsensor3.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(adcVoltage,4); Serial.println("}");
+  Serial.print("{"); Serial.print(Tsensor1.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(Tsensor2.temperature(RNOMINAL, RREF)), Serial.print(", "); Serial.print(Tsensor3.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(adcVoltage,4); Serial.print(", "); Serial.print(tempSet,2); Serial.print(", "); Serial.print(tempActual,2);Serial.println("}");
   //  Serial.println();
   delay(500);
 }
