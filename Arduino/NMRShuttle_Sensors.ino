@@ -38,13 +38,15 @@ Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
 
 // Set some constants for the ADC
   // The multiplier used to convert from 16 bit integer to voltage. Be sure to update this value based on the gain settings!
-  #define MULTIPLIER    0.015625
+  #define MULTIPLIER    0.125
 
 // Set some constants for heater/chiller
   // The maximum temperature value (corresponding to 5V signal)
   #define DYNEOMAX    80
   // The minimum temperature value (corresponding to 0V signal)
   #define DYNEOMIN    -20
+  // Arduino voltage offset
+  #define VOFFSET     0.015
 
 
 void setup() {
@@ -76,7 +78,11 @@ void setup() {
   ads.begin();
 }
 
-void diagnoseFault(uint8_t fault) {
+void checkFault(Adafruit_MAX31865 sensor, int sensorNum) {
+  uint8_t fault = sensor.readFault();
+  if (fault) {
+    Serial.print("Sensor "); Serial.print(sensorNum); Serial.print(" Fault 0x"); Serial.print(fault, HEX);
+  }
   if (fault & MAX31865_FAULT_HIGHTHRESH) {
     Serial.println(":  RTD High Threshold"); 
   }
@@ -95,77 +101,82 @@ void diagnoseFault(uint8_t fault) {
   if (fault & MAX31865_FAULT_OVUV) {
     Serial.println(":  Under/Over voltage"); 
   }
+  sensor.clearFault();
 }
+
+
+
+float readTsensor(Adafruit_MAX31865 sensor, int num) {
+  float value = 0;
+  for (int i=1; i<=num; i++){
+    value += sensor.temperature(RNOMINAL, RREF);
+  }
+  return value/num;
+}
+
+
+float readADC(int num) {
+  ads.setGain(GAIN_EIGHT);
+  int gain = 8;
+  
+  int16_t adcValue = ads.readADC_Differential_0_1();
+  float adcVoltage = adcValue * MULTIPLIER / gain;
+  
+  // Since ADC gain is limited to prrevent damage to chip at high magentic fields
+  // at low magnetic fields, gain can be increased.
+  if (adcVoltage < 64) {
+    ads.setGain(GAIN_SIXTEEN);
+    gain = 16;
+  }
+  
+  if (debug == true) {
+    Serial.print("Differential: "); Serial.print(adcValue); Serial.print(" ("); Serial.print(adcVoltage,4); Serial.println("mV)");
+  }  
+
+  adcValue = 0;
+  
+  for (int i=1; i<=num; i++){
+    adcValue += ads.readADC_Differential_0_1();
+  }
+    adcVoltage = adcValue * MULTIPLIER / gain;
+  
+  return adcVoltage;
+}
+
+
+float readDyneo(int pin, int num) {
+  long analogValue = 0;
+
+  for (int i=1; i<=num; i++){
+    // read the input on analog pin:
+    analogValue += analogRead(pin);
+  }
+
+  // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
+  float analogVoltage = (analogValue/num) * (5.0 / 1023.0) + VOFFSET;
+  
+  // Convert the analog voltage to temperature (0V = -20degC, 5V = 80degC)
+  float analogTemp = analogVoltage*(DYNEOMAX-DYNEOMIN)/5 + DYNEOMIN;
+  
+  if (debug == true) {
+    Serial.print("Analog0 value: "); Serial.print(analogValue); Serial.print(" ("); Serial.print(analogVoltage,4); Serial.println("mV)");
+  }
+
+  return analogTemp;
+}
+
 
 
 void loop() {
   Serial.flush();
 
-
   // Check and print any faults in temperature sensors
-  uint8_t fault1 = Tsensor1.readFault();
-  if (fault1) {
-    Serial.print("Sensor 1 Fault 0x"); Serial.print(fault1, HEX);
-    diagnoseFault(fault1);
-    Tsensor1.clearFault();
-  }
-    
-  uint8_t fault2 = Tsensor2.readFault();
-  if (fault2) {
-    Serial.print("Sensor 2 Fault 0x"); Serial.print(fault2, HEX);
-    diagnoseFault(fault2);
-    Tsensor2.clearFault();
-  }
-  
-  uint8_t fault3 = Tsensor3.readFault();
-  if (fault3) {
-    Serial.print("Sensor 3 Fault 0x"); Serial.print(fault3, HEX);
-    diagnoseFault(fault3);
-    Tsensor3.clearFault();
-  }
-
-
-  // Read ADC
-  int16_t adcValue;
-  float adcVoltage;
-  
-  adcValue = ads.readADC_Differential_0_1();
-  adcVoltage = adcValue * MULTIPLIER;
-  
-  // Since ADC gain is limited to prrevent damage to chip at high magentic fields
-  // at low magnetic fields, gain can be increased.
-  if (adcVoltage < 128) {
-    ads.setGain(GAIN_SIXTEEN);
-    adcValue = ads.readADC_Differential_0_1();
-    adcVoltage = adcValue * MULTIPLIER / 2;
-    ads.setGain(GAIN_EIGHT);
-  }
-    
-  if (debug == true) {
-    Serial.print("Differential: "); Serial.println(adcValue); 
-    Serial.println("("); Serial.print(adcVoltage,4); Serial.println("mV)");
-  }
-
-
-  // Read set temperature from heater/chiller
-  // read the input on analog pin 0:
-  int tempSetValue = analogRead(A0);
-  // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
-  float tempSetVoltage = tempSetValue * (5.0 / 1023.0);
-  // Convert the analog voltage to temperature (0V = -20degC, 5V = 80degC)
-  float tempSet = tempSetVoltage*(DYNEOMAX-DYNEOMIN)/5 + DYNEOMIN;
-
-  // Read actual temperature from heater/chiller
-  // read the input on analog pin 0:
-  int tempActualValue = analogRead(A0);
-  // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
-  float tempActualVoltage = tempActualValue * (5.0 / 1023.0);
-  // Convert the analog voltage to temperature (0V = -20degC, 5V = 80degC)
-  float tempActual = tempActualVoltage*(DYNEOMAX-DYNEOMIN)/5 + DYNEOMIN;
-  
+  checkFault(Tsensor1,1);
+  checkFault(Tsensor2,2);
+  checkFault(Tsensor3,3);
     
   // Print output from sensors
-  Serial.print("{"); Serial.print(Tsensor1.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(Tsensor2.temperature(RNOMINAL, RREF)), Serial.print(", "); Serial.print(Tsensor3.temperature(RNOMINAL, RREF)); Serial.print(", "); Serial.print(adcVoltage,4); Serial.print(", "); Serial.print(tempSet,2); Serial.print(", "); Serial.print(tempActual,2);Serial.println("}");
-  //  Serial.println();
+  Serial.print("{"); Serial.print(readTsensor(Tsensor1,3)); Serial.print(", "); Serial.print(readTsensor(Tsensor2,3)), Serial.print(", "); Serial.print(readTsensor(Tsensor3,3)); Serial.print(", "); Serial.print(readADC(50),4); Serial.print(", "); Serial.print(readDyneo(A0,50),1); Serial.print(", "); Serial.print(readDyneo(A1,50),1);Serial.println("}");
+  
   delay(500);
 }
