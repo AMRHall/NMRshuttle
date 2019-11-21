@@ -46,7 +46,7 @@ Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
   // The minimum temperature value (corresponding to 0V signal)
   #define DYNEOMIN    -20
   // Arduino voltage offset
-  #define VOFFSET     0.015
+  #define VOFFSET     0.032
 
 
 void setup() {
@@ -138,7 +138,7 @@ float readADC(int num) {
   for (int i=1; i<=num; i++){
     adcValue += ads.readADC_Differential_0_1();
   }
-    adcVoltage = adcValue * MULTIPLIER / gain;
+    adcVoltage = adcValue/num * MULTIPLIER / gain;
   
   return adcVoltage;
 }
@@ -176,7 +176,7 @@ void loop() {
   checkFault(Tsensor3,3);
     
   // Print output from sensors
-  Serial.print("{"); Serial.print(readTsensor(Tsensor1,3)); Serial.print(", "); Serial.print(readTsensor(Tsensor2,3)), Serial.print(", "); Serial.print(readTsensor(Tsensor3,3)); Serial.print(", "); Serial.print(readADC(50),4); Serial.print(", "); Serial.print(readDyneo(A0,50),1); Serial.print(", "); Serial.print(readDyneo(A1,50),1);Serial.println("}");
+  Serial.print("{"); Serial.print(readTsensor(Tsensor1,1)); Serial.print(", "); Serial.print(readTsensor(Tsensor2,1)), Serial.print(", "); Serial.print(readTsensor(Tsensor3,1)); Serial.print(", "); Serial.print(readADC(1),4); Serial.print(", "); Serial.print(readDyneo(A0,100),1); Serial.print(", "); Serial.print(readDyneo(A1,100),1);Serial.println("}");
   
   delay(500);
 }
