@@ -9,7 +9,7 @@
 # Also includes graphical user interface.
 #
 # Sept 2019
-version = 'v1.2'
+version = 'v1.3'
 
 import tkinter as tk
 from tkinter import filedialog
@@ -40,7 +40,10 @@ class sensorShield(object):
             self.sens = serial.Serial(port, baud, timeout=0.1)
         except:
             print('Sensor device not found')
-            sys.exit()
+            if GUI == True:
+                errMsg()
+            else:
+                sys.exit()
         print("Opened connection to sensors")
         # Clear input buffer from Arduino
         print(self.sens.read_all())
@@ -52,22 +55,24 @@ class sensorShield(object):
         data = None
         buffer = self.sens.readlines()
         for line in buffer:
-           rawData = str(line)
-           if rawData[2] == "{" and len(rawData) > 24:
+            rawData = str(line)
+            if rawData[2] == "{" and len(rawData) > 45:
                 data = rawData.strip("b'{ }\\r\\n").split(", ")
                 self.PT100_1 = float(data[0])
                 self.PT100_2 = float(data[1])
                 self.PT100_3 = float(data[2])
                 self.hallSens = round(1000*((float(data[3])-self.offset)/self.sensitivity),2)
-                data = (str(self.PT100_1) + ", " + str(self.PT100_2) + ", " + str(self.PT100_3) + ", " + str(self.hallSens))           
-           if data != None:
+                self.dyneoSetTemp = round(float(data[4]),1)
+                self.dyneoActualTemp = round(float(data[5]),1)
+                data = (str(self.PT100_1) + ", " + str(self.PT100_2) + ", " + str(self.PT100_3) + ", " + str(self.hallSens)+ ", " + str(self.dyneoSetTemp)+ ", " + str(self.dyneoActualTemp))           
+            if data != None:
                 return data
        # else:
        #     print(rawData.strip("b'{ }\\r\\n")) 
             
     def openFile(self, interval, path):
         self.outData = open(path, 'w+')
-        self.outData.write('Timestamp' + ', ' + 'Temperature 1 (degC)' + ', ' + 'Temperature 2 (degC)' + ', ' + 'Temperature 3 (degC)' + ', ' + 'Field strength (mT)\n')
+        self.outData.write('Timestamp' + ', ' + 'Temperature 1 (degC)' + ', ' + 'Temperature 2 (degC)' + ', ' + 'Temperature 3 (degC)' + ', ' + 'Field strength (mT)' + ',' + 'Dyneo Set Temperature (degC)' + ',' + 'Sample Temperature (degC)\n')
         self.n = interval - 1
     
     def writeData(self, interval, variables):
@@ -87,6 +92,12 @@ class sensorShield(object):
             outStr += ', '
             if variables[3]  == 1:
                 outStr +=str(self.hallSens)
+            outStr += ', '
+            if variables[4]  == 1:
+                outStr +=str(self.dyneoSetTemp)
+            outStr += ', '
+            if variables[5]  == 1:
+                outStr +=str(self.dyneoActualTemp)
             self.outData.write(outStr + '\n')
             self.outData.flush()
             self.startTime = time.time()
@@ -96,6 +107,9 @@ class sensorShield(object):
 class gui(object):
     
     def __init__(self):
+        # Set up sensors
+        self.sens=sensorShield()
+    	
         # Create Tkinter window
         self.root = tk.Tk()
         self.root.wm_title("Temperature and Field Strength Sensors")
@@ -122,11 +136,20 @@ class gui(object):
         button4.grid(column=3, row=2, pady=(0,15))
         self.var4.set(1)
         
+        self.var13 = tk.IntVar()
+        button13 = tk.Checkbutton(master=self.root, text="Set temperature", variable=self.var13)
+        button13.grid(column=4, row=2, pady=(0,15))
+        self.var13.set(1)
+        
+        self.var14 = tk.IntVar()
+        button14 = tk.Checkbutton(master=self.root, text="Sample temperature", variable=self.var14)
+        button14.grid(column=5, row=2, pady=(0,15))
+        self.var14.set(1)       
 
         # Buttons for data saving
         self.var5 = tk.IntVar()
         self.button5 = tk.Button(master=self.root, text="Start saving", command=self.startSave)
-        self.button5.grid(column=3, row=3)
+        self.button5.grid(column=4, row=3)
         self.save = False
         
         tk.Label(master=self.root, text="Data save interval (s):").grid(column=0, row=3, sticky='w')
@@ -140,14 +163,13 @@ class gui(object):
         self.entrybox2.grid(column=1, row=4, columnspan=3, sticky='w')
         self.entrybox2.insert(10, "Sensor_data.csv")
         self.button6 = tk.Button(master=self.root, text="...", command=self.fileDirectory)
-        self.button6.grid(column=3, row=4, sticky='w')
+        self.button6.grid(column=4, row=4, sticky='w')
         
         button7 = tk.Button(master=self.root, text="EXIT", command=self.exitProgram)
-        button7.grid(column=3, row=6, pady=(15,0), sticky='e')
+        button7.grid(column=5, row=6, pady=(15,0), sticky='e')
 
 
-        # Set up sensors and plot
-        self.sens=sensorShield()
+        # Set up plot
         self.intialisePlot()
         self.sens.clearBuffer()
         
@@ -173,11 +195,11 @@ class gui(object):
     
     def intialisePlot(self):
         # Set up plot with two y axes and a shared x axis
-        self.fig = plt.figure(figsize=(8,5))
+        self.fig = plt.figure(figsize=(9,6))
     
         canvas = FigureCanvasTkAgg(self.fig, master=self.root)
-        canvas.get_tk_widget().grid(column=0, row=1, columnspan=4)
-        tk.Label(self.root,text="Sensor data vs. Time",font=('Arial',18)).grid(column=0, row=0, columnspan=4)
+        canvas.get_tk_widget().grid(column=0, row=1, columnspan=6)
+        tk.Label(self.root,text="Sensor data vs. Time",font=('Arial',18)).grid(column=0, row=0, columnspan=6)
         
         self.ax1 = self.fig.add_subplot(1, 1, 1)
         self.ax2 = self.ax1.twinx()
@@ -188,6 +210,8 @@ class gui(object):
         self.Temp2 = []
         self.Temp3 = []
         self.hallProbe = []
+        self.DyneoSet = []
+        self.SampleTemp = []
 
 
     def plot(self):
@@ -198,6 +222,8 @@ class gui(object):
         self.Temp2.append(self.sens.PT100_2)
         self.Temp3.append(self.sens.PT100_3)
         self.hallProbe.append(self.sens.hallSens)
+        self.DyneoSet.append(self.sens.dyneoSetTemp)
+        self.SampleTemp.append(self.sens.dyneoActualTemp)
         
         # Limit x and y lists to 1500 items (around 5 min)
         self.xs = self.xs[-1500:]
@@ -205,6 +231,8 @@ class gui(object):
         self.Temp2 = self.Temp2[-1500:]
         self.Temp3 = self.Temp3[-1500:]
         self.hallProbe = self.hallProbe[-1500:]
+        self.DyneoSet = self.DyneoSet[-1500:]
+        self.SampleTemp = self.SampleTemp[-1500:]
         
         # Draw x and y lists
         self.ax1.clear()
@@ -222,6 +250,12 @@ class gui(object):
         if self.var4.get() == 1:
             ln4 = self.ax2.plot(self.xs, self.hallProbe, color='orange', label="2Dex")
             lns+=ln4
+        if self.var13.get() == 1:
+            ln5 = self.ax1.plot(self.xs, self.DyneoSet, color='r', linestyle="dashed", label="Set temperature")
+            lns+=ln5
+        if self.var14.get() == 1:
+            ln6 = self.ax1.plot(self.xs, self.SampleTemp, color='g', linestyle="dashed", label="Sample temperature")
+            lns+=ln6
     
         # Format plot
         self.ax1.tick_params(axis='x', rotation=90)
@@ -231,6 +265,10 @@ class gui(object):
         self.ax2.yaxis.tick_right()
         self.ax2.yaxis.set_label_position("right")
         self.ax2.set_ylabel('Field strength (mT)')
+        bottom, top = self.ax1.get_ylim()
+        self.ax1.set_ylim(bottom-10, top+10)
+        bottom, top = self.ax2.get_ylim()
+        self.ax2.set_ylim(bottom-10, top+10)
 
         # Legend
         labs = [l.get_label() for l in lns]
@@ -243,7 +281,7 @@ class gui(object):
 
         data = self.sens.readSensors()
         if self.save == True:
-            self.sens.writeData(self.var6.get(), [self.var1.get(),self.var2.get(),self.var3.get(),self.var4.get()])
+            self.sens.writeData(self.var6.get(), [self.var1.get(),self.var2.get(),self.var3.get(),self.var4.get(),self.var13.get(),self.var14.get()])
         if data != None:
             print(data)
             self.plot()
@@ -257,9 +295,31 @@ class gui(object):
         path = filedialog.asksaveasfilename(title = "Select file",filetypes = (("csv files","*.csv"),("all files","*.*")))
         self.entrybox2.delete(0,'end')
         self.entrybox2.insert(10, path)
-
+        
     def exitProgram(self):
         self.root.destroy()
         sys.exit()
+        
+        
+        
+class errMsg(object):
+	
+    def __init__(self):
+        self.errMsg = tk.Tk()
+        self.errMsg.eval('tk::PlaceWindow . center')
+        self.errMsg.wm_title("Temperature and Field Strength Sensors")
+        
+        tk.Label(master=self.errMsg, text="Sensor device not found!", font =('Arial', 14)).grid(column=0, row=0, padx=50, pady=[20,10])
+        exitButton = tk.Button(master=self.errMsg, text="EXIT", command=self.exitProgram).grid(column=0, row=1, pady=20)
+        
+        tk.mainloop()
+   
+    def exitProgram(self):
+        self.errMsg.destroy()
+        sys.exit()
+        
+        
+        
+GUI = False
 
-gui()
+        
