@@ -1,6 +1,6 @@
 #
 # runNMRShuttle.py
-# Version 1.5, Nov 2019
+# Version 1.4, Sep 2019
 #
 # Andrew Hall 2019 (c)
 # a.m.r.hall@soton.ac.uk
@@ -62,13 +62,13 @@ else:
 	ramp = setup.ramp
 
 #Check if user has set a speed, if not use default
-if GETPAR("CNST 30") != "-1":
+if GETPAR("CNST 30") != "0":
 	speed = float(GETPAR("CNST 30"))
 else:
 	speed = setup.speed
 
 #Check if user has set an acceleration rate, if not use default. Make sure it is within the limits of the motor.
-if GETPAR("CNST 31") != "-1":
+if GETPAR("CNST 31") != "0":
 	accel = float(GETPAR("CNST 31"))
 else:
 	accel = setup.accel
@@ -99,77 +99,75 @@ if (distance < 0) or (distance > setup.maxHeight):
 
 print('\n\n----------------------------------------------------')
 
-if distance != 0:
-	#For modes 1 and 3, estimate the amount of time needed to complete sample motion. For constant time mode, calculate the speed that the motor needs to run at.
-	if mode == 1:
-		print("Constant velocity mode")
-		if (accel * (speed/accel)**2) >= distance:
-			motionTime = 2 * math.sqrt(distance/accel)
-		else:
-			motionTime = 2 * (speed/accel) + (distance - accel*((speed/accel)**2))/speed
-		PUTPAR("D 10",str(motionTime))
-
-	elif mode == 2:		#NB. Calculations in this mode assume a high acceleration rate
-		print("Velocity sweep mode")
-		motionTime = 0
-		Bz = setup.B0
-		z = 0
-		currSpeed = speed*float(eval(ramp))
-		dDistance = 0
-		if ramp.find("Bz") != -1:
-			while Bz >= BSample:
-				lastZ = z
-				z = interp(Bz,fieldValues[::-1],distanceValues[::-1])
-				dDistance = z - lastZ
-				lastSpeed = currSpeed
-				currSpeed = speed*float(eval(ramp))
-				avgSpeed = (currSpeed + lastSpeed)/2
-				motionTime += dDistance/avgSpeed
-				Bz -= (0.01*(setup.B0-BSample))
-		elif ramp.find('z') != -1:
-			while z <= distance:
-				dDistance = 0.01*distance
-				lastSpeed = currSpeed
-				currSpeed = speed*float(eval(ramp))
-				avgSpeed = (currSpeed + lastSpeed)/2
-				motionTime += dDistance/avgSpeed
-				z += 0.01*distance
-		else:
-			ERRMSG("Invalid equation for velocity sweep ramp.\nEquation must be expressed in terms of sample position (z) or local field strength (currField).", modal=1, title="NMR Shuttle Error")
-			EXIT()
-		PUTPAR("D 10",str(motionTime))
-
-	elif mode == 3:	
-		print("Constant time mode") 
-		if 4 * distance > accel * (motionTime**2):
-			ERRMSG("Speed out of range! (CNST30)\nIncrease the sample motion time (D10).", modal=1, title="NMR Shuttle Error")
-			EXIT()
-		else:
-			speed = 0.5 * (accel * motionTime - math.sqrt(accel) * math.sqrt(-4 * distance + accel * motionTime**2))
-		PUTPAR("CNST 30",str(speed))
+#For modes 1 and 3, estimate the amount of time needed to complete sample motion. For constant time mode, calculate the speed that the motor needs to run at.
+if mode == 1:
+	print("Constant velocity mode")
+	if (accel * (speed/accel)**2) >= distance:
+		motionTime = 2 * math.sqrt(distance/accel)
 	else:
-		ERRMSG("Invalid value for operation mode (CNST11).", modal=1, title="NMR Shuttle Error")
-		EXIT()
-
-
-	#Error messages
-	if stallSetting == 1:
-		print("Stall setting 1")
-	elif stallSetting == 2:
-		print("Stall setting 2")
-	elif stallSetting == 3:
-		print("Stall setting 3")
+		motionTime = 2 * (speed/accel) + (distance - accel*((speed/accel)**2))/speed
+	PUTPAR("D 10",str(motionTime))
+	
+elif mode == 2:		#NB. Calculations in this mode assume a high acceleration rate
+	print("Velocity sweep mode")
+	motionTime = 0
+	Bz = setup.B0
+	z = 0
+	currSpeed = speed*float(eval(ramp))
+	dDistance = 0
+	if ramp.find("Bz") != -1:
+		while Bz >= BSample:
+			lastZ = z
+			z = interp(Bz,fieldValues[::-1],distanceValues[::-1])
+			dDistance = z - lastZ
+			lastSpeed = currSpeed
+			currSpeed = speed*float(eval(ramp))
+			avgSpeed = (currSpeed + lastSpeed)/2
+			motionTime += dDistance/avgSpeed
+			Bz -= (0.01*(setup.B0-BSample))
+	elif ramp.find('z') != -1:
+		while z <= distance:
+			dDistance = 0.01*distance
+			lastSpeed = currSpeed
+			currSpeed = speed*float(eval(ramp))
+			avgSpeed = (currSpeed + lastSpeed)/2
+			motionTime += dDistance/avgSpeed
+			z += 0.01*distance
 	else:
-		ERRMSG("Invalid value for stall setting (CNST12).", modal=1, title="NMR Shuttle Error")
+		ERRMSG("Invalid equation for velocity sweep ramp.\nEquation must be expressed in terms of sample position (z) or local field strength (currField).", modal=1, title="NMR Shuttle Error")
 		EXIT()
+	PUTPAR("D 10",str(motionTime))
+	
+elif mode == 3:	
+	print("Constant time mode") 
+	if 4 * distance > accel * (motionTime**2):
+		ERRMSG("Speed out of range! (CNST30)\nIncrease the sample motion time (D10).", modal=1, title="NMR Shuttle Error")
+		EXIT()
+	else:
+		speed = 0.5 * (accel * motionTime - math.sqrt(accel) * math.sqrt(-4 * distance + accel * motionTime**2))
+	PUTPAR("CNST 30",str(speed))
+else:
+	ERRMSG("Invalid value for operation mode (CNST11).", modal=1, title="NMR Shuttle Error")
+	EXIT()
 
-	if setup.maxSpeed > setup.circ*(9.765625/(2**setup.pulDiv)):
-		ERRMSG("Maximum speed out of range!\nCheck the settings in the setup file.", modal=1, title="NMR Shuttle Error")
+
+#Error messages
+if stallSetting == 1:
+	print("Stall setting 1")
+elif stallSetting == 2:
+	print("Stall setting 2")
+elif stallSetting == 3:
+	print("Stall setting 3")
+else:
+	ERRMSG("Invalid value for stall setting (CNST12).", modal=1, title="NMR Shuttle Error")
+	EXIT()
+if setup.maxSpeed > setup.circ*(9.765625/(2**setup.pulDiv)):
+	ERRMSG("Maximum speed out of range!\nCheck the settings in the setup file.", modal=1, title="NMR Shuttle Error")
+	EXIT()
+if (speed < 0)  or (speed > setup.maxSpeed):
+	value = SELECT(message = "Speed out of range! (CNST30)\nIf using constant time mode, consider increasing the sample motion time (D10).", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
+	if value == 1 or value < 0:
 		EXIT()
-	if (speed < 0)  or (speed > setup.maxSpeed):
-		value = SELECT(message = "Speed out of range! (CNST30)\nIf using constant time mode, consider increasing the sample motion time (D10).", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
-		if value == 1 or value < 0:
-			EXIT()
   		
 #Set temperature and wait for ready
 command = "python3.6 Dyneo.py "
@@ -182,31 +180,28 @@ except:
 else:
 	print(' Waiting for temperature to equilibriate...\n')
 	time.sleep(setup.equilibTime)
-	
-	
-if distance != 0:
-	#Call NMRShuttle.py with arguments 
-	command = "python3.6 NMRShuttle.py "
-	arguments = str(mode) + " " + str(stallSetting) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + str(distance) + " '" + ramp + "'"
-	print(command + arguments)
-	proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True, stdin=subprocess.PIPE)
 
-	#Start acquisition
-	zg = ZG(wait=NO_WAIT_TILL_DONE)	
 
-	#Send terminate to motor if acquisition fails/Abort acquisition if motor returns an error
-	while zg.getResult() != 0:
-		if proc.poll() > 0:
-			ct = XCMD("STOP")
-			ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
-			EXIT()
+#Call NMRShuttle.py with arguments 
+command = "python3.6 NMRShuttle.py "
+arguments = str(mode) + " " + str(stallSetting) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + str(distance) + " '" + ramp + "'"
+print(command + arguments)
+proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True, stdin=subprocess.PIPE)
 
-	if proc.poll() != 0:
-		proc.communicate(b'STOP')
-		ERRMSG("Acquistion stopped by Topspin.", title="NMR Shuttle", modal=1)
-	else:
-		ERRMSG("Acquistion completed successfully!", title="NMR Shuttle", modal=0)
-		
+#Start acquisition
+zg = ZG(wait=NO_WAIT_TILL_DONE)
+
+
+#Send terminate to motor if acquisition fails/Abort acquisition if motor returns an error
+while zg.getResult() != 0:
+	if proc.poll() > 0:
+		ct = XCMD("STOP")
+		ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
+		EXIT()
+
+if proc.poll() != 0:
+	proc.communicate(b'STOP')
+	ERRMSG("Acquistion stopped by Topspin.", title="NMR Shuttle", modal=1)
 else:
-	#Start acquisition
-	zg = ZG(arg='DNO_TRIG', wait=NO_WAIT_TILL_DONE)
+	ERRMSG("Acquistion completed successfully!", title="NMR Shuttle", modal=0)
+		
