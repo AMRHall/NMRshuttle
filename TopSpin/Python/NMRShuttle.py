@@ -19,7 +19,6 @@ from PyTrinamic.connections.serial_tmcl_interface import serial_tmcl_interface
 from PyTrinamic.modules.TMCM_1160 import TMCM_1160
 import time, datetime, math, sys, select
 import numpy as np
-import sensorShield
 import serial.tools.list_ports as list_ports
 
 # Define what to do if terminate signal recieved
