@@ -12,10 +12,10 @@ class NMRShuttle(object):
   direction =         -1
 
   # Maximum allowed height (cm)
-  maxHeight =         90
+  maxHeight =         80
 
   # Magnetic field strength at magnet core (mT)
-  B0 =                7056.390197
+  B0 =                7056
 
   # Circumference of motor wheel (cm)
   circ =              25.0
@@ -41,15 +41,16 @@ class NMRShuttle(object):
   
 # Settings for low field homogeneity coil. If coil is not used, set lowFieldCoil_Field to 0 or NaN.
   # Field strength (mT)
-  lowFieldCoil_Field= 1.0
+  lowFieldCoil_Field= 0.0
   
   # Distance of coil from centre of magnet (cm)
   lowFieldCoil_Dist = 150.0
   
   
+ 
   
  # Temperature equilibriation time (s):
-  equilibTime =       120
+  equilibTime =       30
 
   
   
@@ -79,7 +80,7 @@ class stallGuard_1(object):
   motorRunCurrent =         64
   motorStandbyCurrent =     16
   stallguard2Filter =       1
-  stallguard2Threshold =    4
+  stallguard2Threshold =    6
   stopOnStall =             1000
 
 class stallGuard_2(object):
