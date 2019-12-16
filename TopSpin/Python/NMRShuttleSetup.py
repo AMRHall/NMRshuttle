@@ -96,6 +96,6 @@ class stallGuard_3(object):
   motorRunCurrent =         128
   motorStandbyCurrent =     48
   stallguard2Filter =       1
-  stallguard2Threshold =    8
+  stallguard2Threshold =    4
   stopOnStall =             1000
 
