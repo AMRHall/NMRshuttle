@@ -2,8 +2,8 @@
 """
 julaboController.py
 Author: Andrew Hall
-Version: 2.1
-Updated: 22nd Nov 2019
+Version: 2.2
+Updated: Dec 2019
 Script for remote control of Julabo heater/chiller circulator
 See https://www.julabo.com/sites/default/files/he-se_protocol_0.pdf for full 
 list of available commands.
@@ -30,7 +30,7 @@ class dyneo(object):
                 self.dyneo = serial.Serial(port=port, baudrate=4800, bytesize=7, parity=serial.PARITY_EVEN, stopbits=1, timeout=0.1)
         except:
             if GUI == True:
-                errMsg()
+                errMsg("Dyneo not found")
             else:
                 sys.exit(1)
     
@@ -174,6 +174,12 @@ class gui(object):
     
     
     def measure_temperature(self):
+        self.errors = self.d.checkStatus()
+        if self.errors[0] == '-':
+            print(self.errors)
+            errMsg(self.errors)
+            self.errors = ''
+        
         self.temperature = self.d.readTemp()
         
         if self.temperature == -1:
@@ -201,20 +207,23 @@ class gui(object):
             
 class errMsg(object):
 	
-    def __init__(self):
+    def __init__(self, message):
         self.errMsg = tk.Tk()
         self.errMsg.eval('tk::PlaceWindow . center')
         self.errMsg.wm_title("Julabo Dyneo Control")
         
-        tk.Label(master=self.errMsg, text="Dyeno not found!", font =('Arial', 14)).grid(column=0, row=0, padx=50, pady=[20,10])
-        exitButton = tk.Button(master=self.errMsg, text="EXIT", command=self.exitProgram).grid(column=0, row=1, pady=20)
+        tk.Label(master=self.errMsg, text=message, font =('Arial', 14)).grid(column=0, row=0, columnspan=2, padx=50, pady=[20,10])
+        exitButton = tk.Button(master=self.errMsg, text="OK", command=self.closeErrMsg).grid(column=0, row=1, pady=20)
+        exitButton = tk.Button(master=self.errMsg, text="EXIT", command=self.exitProgram).grid(column=1, row=1, pady=20)
         
         tk.mainloop()
-   
+        
+    def closeErrMsg(self):
+        self.errMsg.destroy()
+        
     def exitProgram(self):
         self.errMsg.destroy()
         sys.exit(1)
          
         
 GUI = False
-
