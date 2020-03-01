@@ -1,5 +1,5 @@
 # Instructions for installing NMRShuttle scripts for TopSpin3.5 on Linux Centos 7.
-For more details contact a.m.r.hall@soton.ac.uk
+For more details contact a.m.r.hall@ed.ac.uk or [raise an issue](https://github.com/AMRHall/NMRshuttle/issues).
 
 ## 1. Install Python
 NMRShuttle requires Python 3.6 minimum. To check which version of python is installed, open a terminal window and enter:
