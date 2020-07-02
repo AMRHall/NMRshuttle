@@ -1,9 +1,9 @@
 #
 # runNMRShuttle.py
-# Version 1.4, Sep 2019
+# Version 1.5, Jun 2020
 #
-# Andrew Hall 2019 (c)
-# a.m.r.hall@soton.ac.uk
+# Andrew Hall 2020 (c)
+# a.m.r.hall@ed.ac.uk
 #
 # Python script for calling NMR low field shuttle operation and starting acquisition in Topspin.
 # Includes options for different NMR tubes and for arbitarily defined velocity/distance profiles.
@@ -12,7 +12,7 @@
 
 
 #Import libraries
-import os, math, time, subprocess
+import os, math, time, subprocess, sys
 import NMRShuttleSetup
 
 setup = NMRShuttleSetup.NMRShuttle()
@@ -172,14 +172,18 @@ if (speed < 0)  or (speed > setup.maxSpeed):
 #Set temperature and wait for ready
 command = "python3.6 Dyneo.py "
 arguments = str(round(setpoint-273, 2))
-try:
-	print(command + arguments)
-	setTemp = subprocess.check_call(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
-except:
-	ERRMSG("Dyneo heater/chiller not found. Temperature will not be controlled.", title="NMR Shuttle")
+
+if "NO_TEMP" in sys.argv:
+	ERRMSG("Temperature control disabled by user", title="NMR Shuttle")
 else:
-	print(' Waiting for temperature to equilibriate...\n')
-	time.sleep(setup.equilibTime)
+	try:
+		print(command + arguments)
+		setTemp = subprocess.check_call(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
+	except:
+		ERRMSG("Dyneo heater/chiller not found. Temperature will not be controlled.", title="NMR Shuttle")
+	else:
+		print(' Waiting for temperature to equilibriate...\n')
+		time.sleep(setup.equilibTime)
 
 
 #Call NMRShuttle.py with arguments 
