@@ -424,7 +424,7 @@ class errMsg(object):
         sys.exit()
         
         
-        
+# When running this program inside TopSpin, set GUI=False and comment out line below        
 GUI = True
 gui()
 
