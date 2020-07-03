@@ -9,7 +9,7 @@
 # Also includes graphical user interface.
 #
 # Jul 2020
-version = 'v1.4'
+version = 'v1.5'
 
 import tkinter as tk
 from tkinter import filedialog
@@ -34,7 +34,7 @@ class sensorShield(object):
     def __init__(self, baud=9600): 
         # Open connection to arduino
         for device in list_ports.comports():
-            if device.manufacturer == 'Arduino Srl (www.arduino.org)':
+            if device.serial_number == '55739323637351819251':
                 port = device.device
         try:
             self.sens = serial.Serial(port, baud, timeout=0.1)
