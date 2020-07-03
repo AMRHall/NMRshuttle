@@ -9,7 +9,7 @@
 # Also includes graphical user interface.
 #
 # Jul 2020
-version = 'v1.5'
+version = 'v1.6'
 
 import tkinter as tk
 from tkinter import filedialog
@@ -310,22 +310,22 @@ class gui(object):
         self.ax2.clear()
         lns=[]
         if self.PT100_1_display.get() == 1:
-            ln1 = self.ax1.plot(self.xs, self.Temp1, color='r', label="PT100_1")
+            ln1 = self.ax1.plot(self.xs, self.Temp1, color='#cf81d6', label="PT100_1")
             lns+=ln1
         if self.PT100_2_display.get() == 1:
-            ln2 = self.ax1.plot(self.xs, self.Temp2, color='g', label="PT100_2")
+            ln2 = self.ax1.plot(self.xs, self.Temp2, color='#e5ea3f', label="PT100_2")
             lns+=ln2
         if self.PT100_3_display.get() == 1:
-            ln3 = self.ax1.plot(self.xs, self.Temp3, color='b', label="PT100_3")
+            ln3 = self.ax1.plot(self.xs, self.Temp3, color='#cb4c3b', label="PT100_3")
             lns+=ln3
         if self.HallSens_display.get() == 1:
-            ln4 = self.ax2.plot(self.xs, self.hallProbe, color='orange', label="Hall sensor")
+            ln4 = self.ax2.plot(self.xs, self.hallProbe, color='#4986ae', label="Hall sensor")
             lns+=ln4
         if self.SetTemp_display.get() == 1:
-            ln5 = self.ax1.plot(self.xs, self.DyneoSet, color='r', linestyle="dashed", label="Set temperature")
+            ln5 = self.ax1.plot(self.xs, self.DyneoSet, color='#6c49da', linestyle="dashed", label="Set temperature")
             lns+=ln5
         if self.SampleTemp_display.get() == 1:
-            ln6 = self.ax1.plot(self.xs, self.SampleTemp, color='g', linestyle="dashed", label="Sample temperature")
+            ln6 = self.ax1.plot(self.xs, self.SampleTemp, color='#dbc2ba', linestyle="dashed", label="Sample temperature")
             lns+=ln6
     
         # Format plot
