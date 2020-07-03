@@ -1,15 +1,15 @@
 
 # sensorShield.py
 #
-# Andrew Hall 2019 (c)
+# Andrew Hall 2020 (c)
 # a.m.r.hall@soton.ac.uk
 #
 # Python script for measuring temperature and field strength data
 # using PT100 temperature sensors and 2Dex hall sensor
 # Also includes graphical user interface.
 #
-# Sept 2019
-version = 'v1.3'
+# Jul 2020
+version = 'v1.4'
 
 import tkinter as tk
 from tkinter import filedialog
@@ -34,7 +34,7 @@ class sensorShield(object):
     def __init__(self, baud=9600): 
         # Open connection to arduino
         for device in list_ports.comports():
-            if device.serial_number == '55739323637351819251':
+            if device.manufacturer == 'Arduino Srl (www.arduino.org)':
                 port = device.device
         try:
             self.sens = serial.Serial(port, baud, timeout=0.1)
@@ -103,6 +103,7 @@ class sensorShield(object):
             self.startTime = time.time()
 
 
+
         
 class gui(object):
     
@@ -114,76 +115,145 @@ class gui(object):
         self.root = tk.Tk()
         self.root.wm_title("Temperature and Field Strength Sensors")
       
-
+        # Create frames for layout
+        self.frame1 = tk.Frame(self.root)
+        self.frame2 = tk.Frame(self.root)
+        self.frame3 = tk.Frame(self.root)
+        
+        
         # Buttons to select which sensors to measure
-        self.var1 = tk.IntVar()
-        button1 = tk.Checkbutton(master=self.root, text="PT100_1", variable=self.var1)
-        button1.grid(column=0, row=2, pady=(0,15))
-        self.var1.set(1)
+        self.PT100_1_display = tk.IntVar()
+        PT100_1_button = tk.Checkbutton(master=self.frame1, text="PT100_1", variable=self.PT100_1_display)
+        self.PT100_1_display.set(1)
         
-        self.var2 = tk.IntVar()
-        button2 = tk.Checkbutton(master=self.root, text="PT100_2", variable=self.var2)
-        button2.grid(column=1, row=2, pady=(0,15))
-        self.var2.set(1)
+        self.PT100_2_display = tk.IntVar()
+        PT100_2_button = tk.Checkbutton(master=self.frame1, text="PT100_2", variable=self.PT100_2_display)
+        self.PT100_2_display.set(1)
         
-        self.var3 = tk.IntVar()
-        button3 = tk.Checkbutton(master=self.root, text="PT100_3", variable=self.var3)
-        button3.grid(column=2, row=2, pady=(0,15))
-        self.var3.set(1)
+        self.PT100_3_display = tk.IntVar()
+        PT100_3_button = tk.Checkbutton(master=self.frame1, text="PT100_3", variable=self.PT100_3_display)
+        self.PT100_3_display.set(1)
         
-        self.var4 = tk.IntVar()
-        button4 = tk.Checkbutton(master=self.root, text="2Dex", variable=self.var4)
-        button4.grid(column=3, row=2, pady=(0,15))
-        self.var4.set(1)
+        self.HallSens_display = tk.IntVar()
+        HallSens_button = tk.Checkbutton(master=self.frame1, text="Hall sensor", variable=self.HallSens_display)
+        self.HallSens_display.set(1)
         
-        self.var13 = tk.IntVar()
-        button13 = tk.Checkbutton(master=self.root, text="Set temperature", variable=self.var13)
-        button13.grid(column=4, row=2, pady=(0,15))
-        self.var13.set(1)
+        self.SetTemp_display = tk.IntVar()
+        SetTemp_button = tk.Checkbutton(master=self.frame1, text="Set temperature", variable=self.SetTemp_display)
+        self.SetTemp_display.set(1)
         
-        self.var14 = tk.IntVar()
-        button14 = tk.Checkbutton(master=self.root, text="Sample temperature", variable=self.var14)
-        button14.grid(column=5, row=2, pady=(0,15))
-        self.var14.set(1)       
+        self.SampleTemp_display = tk.IntVar()
+        SampleTemp_button = tk.Checkbutton(master=self.frame1, text="Sample temperature", variable=self.SampleTemp_display)
+        self.SampleTemp_display.set(1)       
+
 
         # Buttons for data saving
-        self.var5 = tk.IntVar()
-        self.button5 = tk.Button(master=self.root, text="Start saving", command=self.startSave)
-        self.button5.grid(column=4, row=3)
+        self.save_var = tk.IntVar()
+        self.save_button = tk.Button(master=self.frame2, text="Start saving", command=self.startSave, width=12)
         self.save = False
         
-        tk.Label(master=self.root, text="Data save interval (s):").grid(column=0, row=3, sticky='w')
-        self.var6 = tk.IntVar()
-        entrybox1 = tk.Entry(master=self.root, width=5, textvariable=self.var6)
-        entrybox1.grid(column=1, row=3, sticky='w')
-        self.var6.set(10)
+        SaveInterval_label = tk.Label(master=self.frame2, text="Data save interval (s):")
+        self.SaveInterval = tk.IntVar()
+        self.SaveInterval_input = tk.Entry(master=self.frame2, width=5, textvariable=self.SaveInterval)
+        self.SaveInterval.set(10)
         
-        tk.Label(master=self.root, text="File path for data:").grid(column=0, row=4, sticky='w')
-        self.entrybox2 = tk.Entry(master=self.root, width=40)
-        self.entrybox2.grid(column=1, row=4, columnspan=3, sticky='w')
-        self.entrybox2.insert(10, "Sensor_data.csv")
-        self.button6 = tk.Button(master=self.root, text="...", command=self.fileDirectory)
-        self.button6.grid(column=4, row=4, sticky='w')
+        FilePath_label = tk.Label(master=self.frame2, text="File path for data:")
+        self.FilePath = tk.Entry(master=self.frame2, width=40)
+        self.FilePath.insert(10, "Sensor_data.csv")
+        self.FilePath_button = tk.Button(master=self.frame2, text="...", command=self.fileDirectory)
         
-        button7 = tk.Button(master=self.root, text="EXIT", command=self.exitProgram)
-        button7.grid(column=5, row=6, pady=(15,0), sticky='e')
+        Exit_button = tk.Button(master=self.root, text="EXIT", command=self.exitProgram)
 
 
+        # Settings for Hall sensor calibration
+        HallSensOffset_label = tk.Label(master=self.frame2, text="Hall sensor offset:")
+        self.HallSensOffset = tk.Entry(master=self.frame2, width=10)
+        self.HallSensOffset.insert(10, self.sens.offset)
+
+        HallSensSensitivity_label = tk.Label(master=self.frame2, text="Hall sensor sensitivity:")
+        self.HallSensSensitivity = tk.Entry(master=self.frame2, width=10)
+        self.HallSensSensitivity.insert(10, self.sens.sensitivity)
+
+
+        # Plot settings
+        # Temperature plot
+        Temp_max_label = tk.Label(master=self.frame3, text="Temperature scale maximum:")
+        self.Temp_autoscale_max = tk.IntVar()
+        Temp_autoscale_button1 = tk.Checkbutton(master=self.frame3, text="Auto", variable=self.Temp_autoscale_max)
+        self.Temp_autoscale_max.set(1)        
+        self.Temp_max = tk.Entry(master=self.frame3, width=10)
+
+        Temp_min_label = tk.Label(master=self.frame3, text="Temperature scale minimum:")
+        self.Temp_autoscale_min = tk.IntVar()
+        Temp_autoscale_button2 = tk.Checkbutton(master=self.frame3, text="Auto", variable=self.Temp_autoscale_min)
+        self.Temp_autoscale_min.set(1)        
+        self.Temp_min = tk.Entry(master=self.frame3, width=10)    
+        
+        # Field plot
+        Field_max_label = tk.Label(master=self.frame3, text="Field scale maximum:")
+        self.Field_autoscale_max = tk.IntVar()
+        Field_autoscale_button1 = tk.Checkbutton(master=self.frame3, text="Auto", variable=self.Field_autoscale_max)
+        self.Field_autoscale_max.set(1)        
+        self.Field_max = tk.Entry(master=self.frame3, width=10)
+
+        Field_min_label = tk.Label(master=self.frame3, text="Field scale minimum:")
+        self.Field_autoscale_min = tk.IntVar()
+        Field_autoscale_button2 = tk.Checkbutton(master=self.frame3, text="Auto", variable=self.Field_autoscale_min)
+        self.Field_autoscale_min.set(1)        
+        self.Field_min = tk.Entry(master=self.frame3, width=10)            
+        
+        TimeScale_label = tk.Label(master=self.frame3, text="Number of time points to plot:")
+        self.TimePoints = tk.Entry(master=self.frame3, width=10)
+        self.TimePoints.insert(0,1500)
+        
+        # Layout elements
+        self.frame1.grid(column=0, row=2, columnspan=3)
+        self.frame2.grid(column=0, row=3)
+        self.frame3.grid(column=1, row=3)
+        
+        PT100_1_button.grid(column=0, row=0, padx=5, pady=(0,15))
+        PT100_2_button.grid(column=1, row=0, padx=5, pady=(0,15))
+        PT100_3_button.grid(column=2, row=0, padx=5, pady=(0,15))        
+        HallSens_button.grid(column=3, row=0, padx=5, pady=(0,15))
+        SetTemp_button.grid(column=4, row=0, padx=5, pady=(0,15))
+        SampleTemp_button.grid(column=5, row=0, padx=5, pady=(0,15))
+        
+        self.save_button.grid(column=2, row=0)        
+        SaveInterval_label.grid(column=0, row=0, sticky='w')
+        self.SaveInterval_input.grid(column=1, row=0, sticky='w')
+        FilePath_label.grid(column=0, row=1, sticky='w')
+        self.FilePath.grid(column=1, row=1, columnspan=3, sticky='w')
+        self.FilePath_button.grid(column=4, row=1, sticky='w')     
+     
+        HallSensOffset_label.grid(column=0, row=2, sticky='w')
+        self.HallSensOffset.grid(column=1, row=2, sticky='w')
+        HallSensSensitivity_label.grid(column=0, row=3, sticky='w')
+        self.HallSensSensitivity.grid(column=1, row=3, sticky='w')
+        
+        Temp_max_label.grid(column=0, row=0, sticky='w')
+        self.Temp_max.grid(column=1, row=0)
+        Temp_autoscale_button1.grid(column=2, row=0)
+        Temp_min_label.grid(column=0, row=1, sticky='w')
+        self.Temp_min.grid(column=1, row=1)
+        Temp_autoscale_button2.grid(column=2, row=1)
+        
+        Field_max_label.grid(column=0, row=2, sticky='w')
+        self.Field_max.grid(column=1, row=2)
+        Field_autoscale_button1.grid(column=2, row=2)
+        Field_min_label.grid(column=0, row=3, sticky='w')
+        self.Field_min.grid(column=1, row=3)
+        Field_autoscale_button2.grid(column=2, row=3)
+        
+        TimeScale_label.grid(column=0, row=4, sticky='w')
+        self.TimePoints.grid(column=1, row=4)
+               
+        Exit_button.grid(column=2, row=6, pady=(15,0), sticky='e')       
+        
+        
+        
         # Set up plot
         self.intialisePlot()
         self.sens.clearBuffer()
-        
-
-        # Settings for Hall sensor calibration
-        tk.Label(master=self.root, text="Hall sensor offset:").grid(column=0, row=5, sticky='w')
-        self.entrybox3 = tk.Entry(master=self.root, width=10)
-        self.entrybox3.grid(column=1, row=5, sticky='w')
-        self.entrybox3.insert(10, self.sens.offset)
-
-        tk.Label(master=self.root, text="Hall sensor sensitivity:").grid(column=0, row=6, sticky='w')
-        self.entrybox4 = tk.Entry(master=self.root, width=10)
-        self.entrybox4.grid(column=1, row=6, sticky='w')
-        self.entrybox4.insert(10, self.sens.sensitivity)
 
         
         # Measure and update graph
@@ -195,14 +265,14 @@ class gui(object):
     
     def intialisePlot(self):
         # Set up plot with two y axes and a shared x axis
-        self.fig = plt.figure(figsize=(9,6))
+        self.fig = plt.figure(figsize=(12,5))
     
         canvas = FigureCanvasTkAgg(self.fig, master=self.root)
-        canvas.get_tk_widget().grid(column=0, row=1, columnspan=6)
+        canvas.get_tk_widget().grid(column=0, row=1, columnspan=3)
         tk.Label(self.root,text="Sensor data vs. Time",font=('Arial',18)).grid(column=0, row=0, columnspan=6)
         
-        self.ax1 = self.fig.add_subplot(1, 1, 1)
-        self.ax2 = self.ax1.twinx()
+        self.ax1 = self.fig.add_subplot(1, 2, 1)
+        self.ax2 = self.fig.add_subplot(1, 2, 2)
         
         # Create a blank list for each x and y dataset
         self.xs = []
@@ -225,78 +295,110 @@ class gui(object):
         self.DyneoSet.append(self.sens.dyneoSetTemp)
         self.SampleTemp.append(self.sens.dyneoActualTemp)
         
-        # Limit x and y lists to 1500 items (around 5 min)
-        self.xs = self.xs[-1500:]
-        self.Temp1 = self.Temp1[-1500:]
-        self.Temp2 = self.Temp2[-1500:]
-        self.Temp3 = self.Temp3[-1500:]
-        self.hallProbe = self.hallProbe[-1500:]
-        self.DyneoSet = self.DyneoSet[-1500:]
-        self.SampleTemp = self.SampleTemp[-1500:]
+        # Limit x and y lists to number of time points set (default is around 5 min)
+        points = int(self.TimePoints.get())
+        self.xs = self.xs[-points:]
+        self.Temp1 = self.Temp1[-points:]
+        self.Temp2 = self.Temp2[-points:]
+        self.Temp3 = self.Temp3[-points:]
+        self.hallProbe = self.hallProbe[-points:]
+        self.DyneoSet = self.DyneoSet[-points:]
+        self.SampleTemp = self.SampleTemp[-points:]
         
         # Draw x and y lists
         self.ax1.clear()
         self.ax2.clear()
         lns=[]
-        if self.var1.get() == 1:
+        if self.PT100_1_display.get() == 1:
             ln1 = self.ax1.plot(self.xs, self.Temp1, color='r', label="PT100_1")
             lns+=ln1
-        if self.var2.get() == 1:
+        if self.PT100_2_display.get() == 1:
             ln2 = self.ax1.plot(self.xs, self.Temp2, color='g', label="PT100_2")
             lns+=ln2
-        if self.var3.get() == 1:
+        if self.PT100_3_display.get() == 1:
             ln3 = self.ax1.plot(self.xs, self.Temp3, color='b', label="PT100_3")
             lns+=ln3
-        if self.var4.get() == 1:
-            ln4 = self.ax2.plot(self.xs, self.hallProbe, color='orange', label="2Dex")
+        if self.HallSens_display.get() == 1:
+            ln4 = self.ax2.plot(self.xs, self.hallProbe, color='orange', label="Hall sensor")
             lns+=ln4
-        if self.var13.get() == 1:
+        if self.SetTemp_display.get() == 1:
             ln5 = self.ax1.plot(self.xs, self.DyneoSet, color='r', linestyle="dashed", label="Set temperature")
             lns+=ln5
-        if self.var14.get() == 1:
+        if self.SampleTemp_display.get() == 1:
             ln6 = self.ax1.plot(self.xs, self.SampleTemp, color='g', linestyle="dashed", label="Sample temperature")
             lns+=ln6
     
         # Format plot
         self.ax1.tick_params(axis='x', rotation=90)
         self.ax1.xaxis.set_major_locator(plt.MaxNLocator(10))
+        self.ax2.tick_params(axis='x', rotation=90)
+        self.ax2.xaxis.set_major_locator(plt.MaxNLocator(10))
         self.fig.subplots_adjust(bottom=0.30, right=0.85)
         self.ax1.set_ylabel('Temperature (deg C)')
         self.ax2.yaxis.tick_right()
         self.ax2.yaxis.set_label_position("right")
         self.ax2.set_ylabel('Field strength (mT)')
-        bottom, top = self.ax1.get_ylim()
-        self.ax1.set_ylim(bottom-10, top+10)
-        bottom, top = self.ax2.get_ylim()
-        self.ax2.set_ylim(bottom-10, top+10)
+        
+        Temp_min, Temp_max = self.ax1.get_ylim()
+        Field_min, Field_max = self.ax2.get_ylim()
+        
+        if self.Temp_autoscale_max.get() == 1:
+            self.Temp_max.delete(0,tk.END)
+            self.Temp_max.insert(10, round(Temp_max+10,0))
+            Temp_max = round(Temp_max+10,0)
+        else:
+            Temp_max = float(self.Temp_max.get())
+        if self.Temp_autoscale_min.get() == 1:
+            self.Temp_min.delete(0,tk.END)
+            self.Temp_min.insert(10, round(Temp_min-10,0))
+            Temp_min = round(Temp_min-10,0)
+        else:
+            Temp_min = float(self.Temp_min.get())
+        
+        if self.Field_autoscale_max.get() == 1:
+            self.Field_max.delete(0,tk.END)
+            self.Field_max.insert(10, round(Field_max+10,0))
+            Field_max = round(Field_max+10,0)
+        else:
+            Field_max = float(self.Field_max.get())
+        if self.Field_autoscale_min.get() == 1:
+            self.Field_min.delete(0,tk.END)
+            self.Field_min.insert(10, round(Field_min-10,0))
+            Field_min = round(Field_min-10,0)
+        else:
+            Field_min = float(self.Field_min.get())        
+        
+        self.ax1.set_ylim(Temp_min, Temp_max)
+        self.ax2.set_ylim(Field_min, Field_max)
 
         # Legend
         labs = [l.get_label() for l in lns]
-        self.ax1.legend(lns, labs, loc='upper center', bbox_to_anchor=(0.5, -0.35), ncol=4)
+        self.ax1.legend(lns, labs, loc='upper center', bbox_to_anchor=(1.1, -0.35), ncol=6)
 
     def animate(self,i):
         # Update Hall sensor settings
-        self.sens.offset = float(self.entrybox3.get())
-        self.sens.sensitivity = float(self.entrybox4.get())
+        self.sens.offset = float(self.HallSensOffset.get())
+        self.sens.sensitivity = float(self.HallSensSensitivity.get())
 
         data = self.sens.readSensors()
         if self.save == True:
-            self.sens.writeData(self.var6.get(), [self.var1.get(),self.var2.get(),self.var3.get(),self.var4.get(),self.var13.get(),self.var14.get()])
+            self.sens.writeData(self.SaveInterval.get(), [self.PT100_1_display.get(),self.PT100_2_display.get(),self.PT100_3_display.get(),self.HallSens_display.get(),self.SetTemp_display.get(),self.SampleTemp_display.get()])
         if data != None:
             print(data)
             self.plot()
         
     def startSave(self):
-        self.sens.openFile(self.var6.get(), self.entrybox2.get())
+        self.sens.openFile(self.save_var.get(), self.FilePath.get())
         self.save = True
-        self.button5.config(relief='sunken', fg='red', text='Saving...')
+        self.save_button.config(relief='sunken', fg='red', text='Saving...')
         
     def fileDirectory(self):
         path = filedialog.asksaveasfilename(title = "Select file",filetypes = (("csv files","*.csv"),("all files","*.*")))
-        self.entrybox2.delete(0,'end')
-        self.entrybox2.insert(10, path)
+        self.FilePath.delete(0,'end')
+        self.FilePath.insert(10, path)
         
     def exitProgram(self):
+        self.root.quit() 
         self.root.destroy()
         sys.exit()
         
@@ -309,8 +411,11 @@ class errMsg(object):
         self.errMsg.eval('tk::PlaceWindow . center')
         self.errMsg.wm_title("Temperature and Field Strength Sensors")
         
-        tk.Label(master=self.errMsg, text="Sensor device not found!", font =('Arial', 14)).grid(column=0, row=0, padx=50, pady=[20,10])
-        exitButton = tk.Button(master=self.errMsg, text="EXIT", command=self.exitProgram).grid(column=0, row=1, pady=20)
+        exitButton_label = tk.Label(master=self.errMsg, text="Sensor device not found!", font =('Arial', 14))
+        exitButton = tk.Button(master=self.errMsg, text="EXIT", command=self.exitProgram)
+
+        exitButton_label.grid(column=0, row=0, padx=50, pady=[20,10])
+        exitButton.grid(column=0, row=1, pady=20)
         
         tk.mainloop()
    
@@ -320,6 +425,7 @@ class errMsg(object):
         
         
         
-GUI = False
+GUI = True
+gui()
 
         
