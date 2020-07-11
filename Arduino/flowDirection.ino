@@ -19,7 +19,7 @@ is activated and deactivated using the commands 'SWITCH_ON' and
 (c) Andrew Hall 2020
 a.m.r.hall@ed.ac.uk
 
-version 1.1
+version 1.2
 Jul 2020
 */
 
@@ -34,11 +34,9 @@ const int ttl = A0;
 
 // Variables that will change:
 bool ttl_working = true;          // status of ttl input line
-bool on = true;                   // module on/off state
+bool on = false;                   // module on/off state
 int valveState = LOW;             // valveState used to set the valve
-int switchDelay = 60;             // default value for valve switching delay
 bool hold = false;                // hold state used to prevent switching during acquisition
-int holdDelay = 10;               // delay to prevent switching during acquisition
 String errs;                      // string for holding error messages
 
 
@@ -46,12 +44,13 @@ String errs;                      // string for holding error messages
 // The value will quickly become too large for an int to store
 unsigned long previousMillis = 0;        // will store last time valve was switched
 unsigned long holdStart = 0;             // will store start time for hold
-
-
+unsigned long switchDelay = 300;             // default value for valve switching delay
+unsigned long holdDelay = 10;               // delay to prevent switching during acquisition
 
 void setup() {
   // initialize serial:
   Serial.begin(9600);
+  Serial.setTimeout(100);
   // make the pins outputs:
   pinMode(relay1, OUTPUT);
   pinMode(relay2, OUTPUT);
