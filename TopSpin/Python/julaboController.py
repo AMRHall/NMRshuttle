@@ -27,8 +27,7 @@ import serial.tools.list_ports as list_ports
 class dyneo(object):
     def __init__(self, GUI=False):
         for device in list_ports.comports():
-            if device.serial_number == '955303437343511161F1':
-            #if device.description == 'CORIO':
+            if device.description == 'CORIO':
                 port = device.device
         try:
             self.dyneo = serial.Serial(port=port, baudrate=4800, bytesize=7, parity=serial.PARITY_EVEN, stopbits=1, timeout=0.1)
