@@ -13,6 +13,7 @@ to be installed in same directory as this python script. Also requires PyTrinami
 ## Contents:
 __Arduino__
 * ___NMRShuttle_Sensors.ino___ (Firmware for Arduino sensor logger)
+* ___flowDirection.ino___ (Firmware for Arduino flow direction valves)
 
 __Python__
 * ___fieldMap.py___ (Python program for automatically recording a field map profile using a hall sensor and stepper motor)
@@ -38,6 +39,7 @@ __TopSpin__
   * ___NMRShuttle.py___ (Python program for controlling shuttle motor unit)
   * ___NMRShuttleSetup.py___ (Setup and default parameters for NMR Shuttle program)
   * ___julaboController.py___ (Python program for interfacing with heater/chiller)
+  * ___julaboGUI.py___ (Graphical interface for heater/chiller)
   * ___runNMRShuttle.py___ (Python script enabling TopSpin to interface with motor unit)
   * ___zg_xpya___ (Python script for executing acquisition without triggering motor)
   
