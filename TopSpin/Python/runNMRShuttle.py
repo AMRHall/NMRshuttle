@@ -1,6 +1,6 @@
 #
 # runNMRShuttle.py
-# Version 1.5, Jun 2020
+# Version 1.6, Jul 2020
 #
 # Andrew Hall 2020 (c)
 # a.m.r.hall@ed.ac.uk
@@ -54,6 +54,7 @@ ns = int(GETPAR("NS"))			#Number of scans
 dim = int(GETPAR("PARMODE"))		#Spectrum dimensions (1D, 2D...)
 motionTime = float(GETPAR("D 10"))	#Time taken for sample motion (s)
 setpoint = float(GETPAR("TE"))		#Temperature (K)
+flowSwitchDelay = float(GETPAR("D 30"))	#Delay for flow direction switching (s)
 
 #Get ramp equation used for variable speed experiments
 if str(GETPAR("USERA1")) != "":
@@ -171,7 +172,12 @@ if (speed < 0)  or (speed > setup.maxSpeed):
   		
 #Set temperature and wait for ready
 command = "python3.6 Dyneo.py "
-arguments = str(round(setpoint-273, 2))
+if flowSwitchDelay == 0:    # 0 is interpreted as an infinite delay (ie. valves do not switch)
+	flowSwitchDelay = 'OFF'
+elif flowSwitchDelay < 30:  # Minimum delay is 30s to avoid valves switching too quickly
+	ERRMSG("Flow direction switching delay (D30) too short. Must be minimum 30 seconds.\nTo disable flow direction switching set D30 to zero.", title="NMR Shuttle", modal=1)
+	EXIT()   
+arguments = str(round(setpoint-273, 2)) + " " + str(flowSwitchDelay)
 
 if "NO_TEMP" in sys.argv:
 	ERRMSG("Temperature control disabled by user", title="NMR Shuttle")
