@@ -2,60 +2,73 @@
 """
 julaboController.py
 Author: Andrew Hall
-Version: 2.2
-Updated: Dec 2019
-Script for remote control of Julabo heater/chiller circulator
-See https://www.julabo.com/sites/default/files/he-se_protocol_0.pdf for full 
-list of available commands.
-"""
+Version: 3.0
+Updated: July 2020
 
-import tkinter as tk
-import datetime as dt
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.animation as animation
+Script for remote control of Julabo heater/chiller circulator and flow
+direction valves.
+
+See https://www.julabo.com/sites/default/files/he-se_protocol_0.pdf for full 
+list of available commands for Julabo.
+
+Delay for switching direction can be sent to arduino as interger values in 
+seconds. Sending the command 'STATUS' returns the current status (ON, OFF, 
+HOLD, ERROR). The command 'POS' returns the postion of the valves (1= ON, 
+0= OFF). The valve position can be set manually using the commands 
+'SET_VALVE_ON' and 'SET_VALVE_OFF'. The module is activated and deactivated 
+using the commands 'SWITCH_ON' and 'SWITCH_OFF'
+
+"""
 import serial, time, sys
 import serial.tools.list_ports as list_ports
 
-matplotlib.use('TkAgg')
 
 
 class dyneo(object):
-    def __init__(self):
+    def __init__(self, GUI=False):
         for device in list_ports.comports():
-                if device.description == 'CORIO':
-                        port = device.device
+            if device.serial_number == '955303437343511161F1':
+            #if device.description == 'CORIO':
+                port = device.device
         try:
-                self.dyneo = serial.Serial(port=port, baudrate=4800, bytesize=7, parity=serial.PARITY_EVEN, stopbits=1, timeout=0.1)
+            self.dyneo = serial.Serial(port=port, baudrate=4800, bytesize=7, parity=serial.PARITY_EVEN, stopbits=1, timeout=0.1)
         except:
-            if GUI == True:
-                errMsg("Dyneo not found")
-            else:
-                sys.exit(1)
+            sys.exit(1)
     
+    
+    def send(self, command):
+        self.dyneo.reset_input_buffer()
+        command = str(command) + "\r"
+        self.dyneo.write(bytes(command.encode('utf-8')))
+        time.sleep(0.1) # 100 ms delay to allow Julabo time to respond
+        reply = self.dyneo.readline()
+        if len(reply) > 0:
+            reply = reply.decode('utf-8').strip('\n')
+        else:
+            reply = None
+        return reply
+        
     
     def switchOn(self):
-        self.dyneo.write(b'out_mode_05 1\r')
+        self.send('out_mode_05 1')
         
         
     def switchOff(self):
-        self.dyneo.write(b'out_mode_05 0\r')
+        self.send('out_mode_05 0')
 
 
     def readTemp(self):
-        self.dyneo.write(b'in_pv_02\r')
-        reply = str(self.dyneo.readline())
         try:
-            temp = float(reply.strip("b'\\r\\n"))
+            temp = float(self.send('in_pv_02'))
         except:
-            temp = -1
+            temp = None
         return temp
     
     
     def setTemp(self,setpoint):
-        self.dyneo.write(bytes('out_sp_00 ' + str(setpoint) + '\r', 'utf-8'))
+        self.send('out_sp_00 ' + str(setpoint))
         print('Set temperature: ' + str(setpoint) + u'\N{DEGREE SIGN}C')
+        
         
     def setTemp_wait(self, setpoint):
         self.setTemp(setpoint)
@@ -78,9 +91,9 @@ class dyneo(object):
 
 
     def checkStatus(self):
-        self.dyneo.write(b'status\r')
-        status = str(self.dyneo.readline()).strip("b'\\r\\n")
+        status = self.send('status')
         return status
+    
     
     def close(self):
         self.dyneo.close()
@@ -89,141 +102,59 @@ class dyneo(object):
 
 
 
-class gui(object):
-    
-    def __init__(self):
-        
-        self.on = False
-        
-        # Create Tkinter window
-        self.window = tk.Tk()
-        self.window.title("Julabo Dyneo control")
-        
-        self.set_temp = tk.StringVar(self.window)
-        self.set_temp.set(format(20.00, '.2f'))
-        
-        self.temp_var = tk.StringVar(self.window)
-        self.temp_var.set("--.-- \u00B0C")
-        
-        self.user_input = tk.Entry(self.window, textvariable=self.set_temp, font="Arial 36 bold", width=6, justify="right")
-        self.user_input.grid(row=1, column=0)
-        self.units = tk.Label(self.window, text="\u00B0C", font="Arial 36 bold", width=2, justify="left").grid(row=1, column=1, sticky="w")
-        
-        self.current_temp = tk.Label(self.window, textvariable=self.temp_var, font="Arial 36 bold", fg="yellow", bg="black", width=9)
-        self.current_temp.grid(row=1, column=2)
-        
-        self.on_button = tk.Button(self.window, text="ON", fg="green", font="Arial 20 bold", padx=5, pady=5, command=self.switch_on).grid(row=2, column=0, columnspan=2, sticky="wnes")
-        self.off_button = tk.Button(self.window, text="OFF", fg="red", font="Arial 20 bold", padx=5, pady=5, command=self.switch_off).grid(row=2, column=2, sticky="wnes")
-        
-        self.initialise_plot()
-        self.d = dyneo()      
-        
-        ani = animation.FuncAnimation(self.fig, self.animate, interval=200, blit=False)
-        
-        self.window.mainloop()
-        
-        
-    def initialise_plot(self):
-        # Set up plot
-        self.fig = plt.figure(figsize=(5,3))
-        plt.style.use('dark_background')
-        self.fig.patch.set_facecolor('black')
-        
-        canvas = FigureCanvasTkAgg(self.fig, master=self.window)
-        canvas.get_tk_widget().grid(column=0, row=0, columnspan=3)
-        
-        self.ax = self.fig.add_subplot(1,1,1)
-        
-        # Create a blank list for each x and y dataset
-        self.xs =[]
-        self.setpoints = []
-        self.temps = []
-        
-        
-    def plot(self):
-        # Add x and y to lists
-        self.xs.append(dt.datetime.now().strftime('%H:%M:%S'))
-        self.setpoints.append(float(self.set_temp.get()))
-        self.temps.append(self.temperature)
-        
-        # Limit x and y lists to 1500 items
-        self.xs = self.xs[-1500:]
-        self.setpoints = self.setpoints[-1500:]
-        self.temps = self.temps[-1500:]
-        
-        # Draw plot
-        self.ax.clear()
-        self.ax.plot(self.xs, self.setpoints, color='r', label='Setpoint')
-        self.ax.plot(self.xs, self.temps, color='g', label='Temperature')
-        
-        self.ax.set_ylabel('Temperature (\u00B0C)')
-        self.ax.xaxis.set_major_locator(plt.MaxNLocator(5))
-        
-        
-    def switch_on(self):
-        self.d.setTemp(float(self.set_temp.get()))
-        self.d.switchOn()
-        self.on = True
-        return
-    
-    
-    def switch_off(self):
-        self.d.switchOff()
-        self.off = False
-        return 
-    
-    
-    def measure_temperature(self):
-        self.errors = self.d.checkStatus()
-        if self.errors[0] == '-':
-            print(self.errors)
-            errMsg(self.errors)
-            self.errors = ''
-        
-        self.temperature = self.d.readTemp()
-        
-        if self.temperature == -1:
-            self.current_temp.config(fg="yellow")
-            self.temperature = '--.--'
-        elif self.temperature > float(self.set_temp.get())-0.1 and self.temperature < float(self.set_temp.get())+0.1:
-            self.current_temp.config(fg="green")
-            self.temp_var.set("--.-- \u00B0C")
-        elif self.temperature > float(self.set_temp.get()):
-            self.current_temp.config(fg="red")
-        elif self.temperature < float(self.set_temp.get()):
-            self.current_temp.config(fg="blue")
 
-        self.temp_var.set(str(self.temperature) + " \u00B0C")
+class valves(object):
+    def __init__(self):
+        for device in list_ports.comports():
+            if device.serial_number == '55736323239351918101':
+                port = device.device
+        try:
+            self.valves = serial.Serial(port=port, baudrate=9600, timeout=0.1)
+            time.sleep(2)  # Arduino takes a couple of seconds to wake up
+        except:
+            raise AttributeError
     
     
-    def animate(self, i):
-        self.measure_temperature()
+    def send(self, command):
+        self.valves.reset_input_buffer()
+        command = str(command) + "\n"
+        self.valves.write(bytes(command.encode('utf-8')))
+        reply = self.valves.readline()
+        return reply.decode('utf-8')
+    
+    
+    def switchOn(self):
+        self.send('SWITCH_ON')
         
-        if self.on == True:
-            self.plot()
-            
-            
-            
-            
-class errMsg(object):
-	
-    def __init__(self, message):
-        self.errMsg = tk.Tk()
-        self.errMsg.eval('tk::PlaceWindow . center')
-        self.errMsg.wm_title("Julabo Dyneo Control")
         
-        tk.Label(master=self.errMsg, text=message, font =('Arial', 14)).grid(column=0, row=0, columnspan=2, padx=50, pady=[20,10])
-        exitButton = tk.Button(master=self.errMsg, text="OK", command=self.closeErrMsg).grid(column=0, row=1, pady=20)
-        exitButton = tk.Button(master=self.errMsg, text="EXIT", command=self.exitProgram).grid(column=1, row=1, pady=20)
+    def switchOff(self):
+        self.send('SWITCH_OFF')
         
-        tk.mainloop()
         
-    def closeErrMsg(self):
-        self.errMsg.destroy()
+    def checkStatus(self):
+        status = self.send('STATUS')
+        return status
+
+
+    def readPosition(self):
+        position = self.send('POS')
+        return position
+    
+    
+    def setPosition(self, position):
+        if position == 0:
+            self.send('SET_VALVE_OFF')
+        else:
+            self.send('SET_VALVE_ON')
         
-    def exitProgram(self):
-        self.errMsg.destroy()
-        sys.exit(1)
-         
         
-GUI = False
+    def setDelay(self,delay):
+        if delay > 0:
+            self.send(delay)
+        
+        
+    def close(self):
+        self.valves.close()
+        sys.exit()
+
+
