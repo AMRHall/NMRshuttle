@@ -17,7 +17,7 @@ define delay d125p
 1 ze
 
 define delay dmot
-"dmot = vd - (d10*2 + cnst11 + cnst12 + cnst20 + cnst30 + cnst31)*0"
+"dmot = vd - (d10*2 + d30 + cnst11 + cnst12 + cnst20 + cnst30 + cnst31)*0"
 
 ; Shaped pulse to destroy singlet
 2 (p5:sp1 ph5):f1
@@ -152,6 +152,7 @@ ph5 = 0
 
 ;d10 : sample motion time
 ;d11 : positioning delay
+;d30 : Delay time for switching heat transfer flow direction. 0 =  infinite delay (valve off)
 ;cnst11 : Operation mode (1 = constant velocity, 2 = velocity sweep, 3 = constant time)
 ;cnst12 : Stall guard settings (1 = standard glass tube, 2 = high pressure tube, 3 = temperature control system)
 ;cnst20 : Low field strength (mT)
