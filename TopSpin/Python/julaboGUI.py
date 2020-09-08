@@ -2,8 +2,8 @@
 """
 julaboGUI.py
 Author: Andrew Hall
-Version: 1.0
-Updated: Jul 2020
+Version: 1.1
+Updated: Sept 2020
 
 User interface for remote control of Julabo heater/chiller circulator
 and flow direction switching valves
@@ -257,7 +257,7 @@ class gui(object):
         self.d.setTemp(float(self.set_temp.get()))
         self.d.switchOn()
         self.add_to_log('Julabo: ON\nSet temperature: ' + self.set_temp.get() + ' \u00B0C\n')
-        if self.valve_disable == False:
+        if self.valve_disable == False and self.position_var.get() == 'Auto':
             self.v.switchOn()
             self.set_valve_delay()
         self.on = True
@@ -344,6 +344,7 @@ class gui(object):
             self.add_to_log("Manual override: Valve position B\n")
         elif self.on == True:
             self.v.switchOn()
+            self.set_valve_delay()
         else:
             self.v.switchOff()
         
