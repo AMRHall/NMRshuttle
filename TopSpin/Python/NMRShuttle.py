@@ -129,9 +129,9 @@ module.setMaxAcceleration(accel)
 #Print some information for the user
 if mode == 1 or mode == 3:
 	module.setTargetSpeed(speed)
-	print("Target speed = " + str(speed))
+	print("Target speed = " + str(speed) + " (motor units)")
 	     
-print("Acceleration = " + str(accel))
+print("Acceleration = " + str(accel) + " (motor units)")
 
 print(str("Magnetic field strength = " + str(BSample) +  " mT"))
 
