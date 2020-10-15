@@ -64,19 +64,19 @@ else:
 
 #Check if user has set a speed, if not use default
 if GETPAR("CNST 30") != "0":
-	print("No target speed set by user (CNST30). If using constant time mode target speed will be calculated, otherwise default value will be used.")
-	speed = float(GETPAR("CNST 30"))
-	PUTPAR("CNST 30",str(speed))
+	speed = float(GETPAR("CNST 30"))	
 else:
+	print("No target speed set by user (CNST30). If using constant time mode target speed will be calculated, otherwise default value will be used.")
 	speed = setup.speed
+	PUTPAR("CNST 30",str(speed))
 
 #Check if user has set an acceleration rate, if not use default. Make sure it is within the limits of the motor.
 if GETPAR("CNST 31") != "0":
-	print("No acceleration set by user (CNST31). Default value will be used.")
 	accel = float(GETPAR("CNST 31"))
-	PUTPAR("CNST 31",str(accel))
 else:
+	print("No acceleration set by user (CNST31). Default value will be used.")
 	accel = setup.accel
+	PUTPAR("CNST 31",str(accel))
 if (accel < 0) or (accel > setup.circ*((1.024*10**13)/(2**(setup.rampDiv+setup.pulDiv+29)))):
 	value = SELECT(message = "Acceleration out of range! (CNST31)", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
 	if value == 1 or value < 0:
