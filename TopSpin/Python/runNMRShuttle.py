@@ -114,7 +114,8 @@ if (distance < 0) or (distance > setup.maxHeight):
 
 print('\n\n----------------------------------------------------')
 
-#For modes 1 and 3, estimate the amount of time needed to complete sample motion. For constant time mode, calculate the speed that the motor needs to run at.
+#For constant velocity and velocity sweep modes, estimate the amount of time needed to complete sample motion. 
+#For constant time mode, calculate the speed that the motor needs to run at.
 if mode == 1:
 	print("Constant velocity mode")
 	if (accel * (speed/accel)**2) >= distance:

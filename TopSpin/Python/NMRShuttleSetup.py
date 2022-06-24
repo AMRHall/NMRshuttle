@@ -29,8 +29,9 @@ class NMRShuttle(object):
   # Note that this value will be ignored if CNST30 > 0 or if constant time mode is selected (CNST11 = 3).
   speed =             25
 
-  # Maximum motor acceleration (cm/s^2) (0...465.5 with default settings). 
-  # This can be adapted by changing motor rampDiv setting or motor wheel diameter
+  # Motor acceleration (cm/s^2) (0...465.5 with default settings). 
+  # Note that this value will be ignored if CNST31 > 0.
+  # The maximum acceleration can be adapted by changing motor rampDiv setting or motor wheel diameter
   accel =             22.74
 
   # Maximum motor speed (cm/s) (0...30.518 with default settings). 
