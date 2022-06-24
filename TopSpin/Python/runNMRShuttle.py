@@ -1,13 +1,15 @@
 #
 # runNMRShuttle.py
-# Version 1.6, Jul 2020
+# Version 1.7, Jun 2022
 #
-# Andrew Hall 2020 (c)
+# Andrew Hall 2022 (c)
 # a.m.r.hall@ed.ac.uk
 #
 # Python script for calling NMR low field shuttle operation and starting acquisition in Topspin.
 # Includes options for different NMR tubes and for arbitarily defined velocity/distance profiles.
 # Requires setup file containing motor parameters.
+#
+# Input argument 'popt' will prompt user to enter number of experiments.
 #
 
 
@@ -66,7 +68,7 @@ else:
 if GETPAR("CNST 30") != "0":
 	speed = float(GETPAR("CNST 30"))	
 else:
-	print("No target speed set by user (CNST30). If using constant time mode target speed will be calculated, otherwise default value will be used.")
+	print("No target speed set by user (CNST30). If using constant time mode target speed will be calculated, otherwise default value from setup file will be used.")
 	speed = setup.speed
 	PUTPAR("CNST 30",str(speed))
 
@@ -74,11 +76,13 @@ else:
 if GETPAR("CNST 31") != "0":
 	accel = float(GETPAR("CNST 31"))
 else:
-	print("No acceleration set by user (CNST31). Default value will be used.")
+	print("No acceleration set by user (CNST31). Default value from setup file will be used.")
 	accel = setup.accel
 	PUTPAR("CNST 31",str(accel))
-if (accel < 0) or (accel > setup.circ*((1.024*10**13)/(2**(setup.rampDiv+setup.pulDiv+29)))):
-	value = SELECT(message = "Acceleration out of range! (CNST31)", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
+max_accel = setup.circ*((1.024*10**13)/(2**(setup.rampDiv+setup.pulDiv+29)))
+if (accel < 0) or (accel > max_accel):
+	value = SELECT(message = "Acceleration value (CNST31) out of range!/n Acceleration must be between 0 and " + str(round(max_accel,2)),
+                buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
 	if value == 1 or value < 0:
   		ct = XCMD("STOP")
   		EXIT()
@@ -88,6 +92,12 @@ if dim == 0:
 	td = "1"
 else:
 	td = GETPAR("TD",1)
+    
+if "popt" in sys.argv:
+    result = INPUT_DIALOG(title="NMR Shuttle", 
+                          header="Number of experiments for POPT:", 
+                          values=[td])
+    td = result[0]
 
 
 #Calculate distance that motor needs to move to achieve the desired field strength.
@@ -170,7 +180,8 @@ if setup.maxSpeed > setup.circ*(9.765625/(2**setup.pulDiv)):
 	ERRMSG("Maximum speed out of range!\nCheck the settings in the setup file.", modal=1, title="NMR Shuttle Error")
 	EXIT()
 if (speed < 0)  or (speed > setup.maxSpeed):
-	value = SELECT(message = "Speed out of range! (CNST30)\nIf using constant time mode, consider increasing the sample motion time (D10).", buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
+	value = SELECT(message = "Speed out of range! (CNST30)\nIf using constant time mode, consider increasing the sample motion time (D10).", 
+                buttons=["OVERRIDE", "CANCEL"], title="NMR Shuttle Error")
 	if value == 1 or value < 0:
 		EXIT()
   		
@@ -179,7 +190,8 @@ command = "python3.6 Dyneo.py "
 if flowSwitchDelay == 0:    # 0 is interpreted as an infinite delay (ie. valves do not switch)
 	flowSwitchDelay = 'OFF'
 elif flowSwitchDelay < 30:  # Minimum delay is 30s to avoid valves switching too quickly
-	ERRMSG("Flow direction switching delay (D30) too short. Must be minimum 30 seconds.\nTo disable flow direction switching set D30 to zero.", title="NMR Shuttle", modal=1)
+	ERRMSG("Flow direction switching delay (D30) too short. Must be minimum 30 seconds.\nTo disable flow direction switching set D30 to zero.", 
+        title="NMR Shuttle", modal=1)
 	EXIT()   
 arguments = str(round(setpoint-273, 2)) + " " + str(flowSwitchDelay)
 
