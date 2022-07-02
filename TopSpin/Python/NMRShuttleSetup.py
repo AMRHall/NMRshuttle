@@ -5,6 +5,9 @@ Created on 21.03.2019
 
 class NMRShuttle(object):
   
+  # Python version (an empty string will use default python installation)
+  pyversion = 				"3.6"
+  
   # Motor model
   model =             "TMCM-1160"
   

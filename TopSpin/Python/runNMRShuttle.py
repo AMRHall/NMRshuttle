@@ -1,6 +1,6 @@
 #
 # runNMRShuttle.py
-# Version 1.7, Jun 2022
+# Version 1.8, Jun 2022
 #
 # Andrew Hall 2022 (c)
 # a.m.r.hall@ed.ac.uk
@@ -32,12 +32,22 @@ def interp(x, x_arr, y_arr):
 	y_max = y_arr[i]
 	factor = (x - x_min) / (xi - x_min)
 	return y_min + (y_max - y_min) * factor 
+	
+#Get current dataset
+curdat = CURDATA(cmdthread = None)
+if curdat == None:
+	ERRMSG("Please open or activate a dataset!", modal=1, title="NMR Shuttle Error")
+	EXIT()
 
 #Set TopSpin installation directory
-path = "/opt/topspin3.5pl7/"
+path = root.UtilPath.getTopspinHome()
+pypath = path + r'/exp/stan/nmr/py/user'
+
+#Set verion of python to use
+pyversion = 'python' + setup.pyversion
 
 #Open file containing experimental field map
-fieldMap = open(path+'exp/stan/nmr/py/user/fieldMap.csv', 'r') #Change the path here to the correct location of the field map file
+fieldMap = open(pypath+r'/fieldMap.csv', 'r') #Change the path here to the correct location of the field map file
 distanceValues = []
 fieldValues = []
 fieldMapValues = fieldMap.readlines()
@@ -187,7 +197,7 @@ if (speed < 0)  or (speed > setup.maxSpeed):
 		EXIT()
   		
 #Set temperature and wait for ready
-command = "python3.6 Dyneo.py "
+command = pyversion + " Dyneo.py "
 if flowSwitchDelay == 0:    # 0 is interpreted as an infinite delay (ie. valves do not switch)
 	flowSwitchDelay = 'OFF'
 elif flowSwitchDelay < 30:  # Minimum delay is 30s to avoid valves switching too quickly
@@ -201,7 +211,7 @@ if "NO_TEMP" in sys.argv:
 else:
 	try:
 		print(command + arguments)
-		setTemp = subprocess.check_call(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True)
+		setTemp = subprocess.check_call(command + arguments, cwd=pypath, shell=True)
 	except:
 		ERRMSG("Dyneo heater/chiller not found. Temperature will not be controlled.", title="NMR Shuttle")
 	else:
@@ -210,10 +220,10 @@ else:
 
 
 #Call NMRShuttle.py with arguments 
-command = "python3.6 NMRShuttle.py "
+command = pyversion + " NMRShuttle.py "
 arguments = str(mode) + " " + str(stallSetting) + " " + str(BSample) + " " + str(ns) + " " + td + " " + str(speed) + " " + str(accel) + " " + str(distance) + " '" + ramp + "'"
 print(command + arguments)
-proc = subprocess.Popen(command + arguments, cwd=path + "exp/stan/nmr/py/user", shell=True, stdin=subprocess.PIPE)
+proc = subprocess.Popen(command + arguments, cwd=pypath, shell=True, stdin=subprocess.PIPE)
 
 #Start acquisition
 zg = ZG(wait=NO_WAIT_TILL_DONE)
