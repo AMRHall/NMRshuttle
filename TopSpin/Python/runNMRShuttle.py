@@ -1,6 +1,6 @@
 #
 # runNMRShuttle.py
-# Version 1.8, Jun 2022
+# Version 1.9, Jun 2022
 #
 # Andrew Hall 2022 (c)
 # a.m.r.hall@ed.ac.uk
@@ -9,7 +9,8 @@
 # Includes options for different NMR tubes and for arbitarily defined velocity/distance profiles.
 # Requires setup file containing motor parameters.
 #
-# Input argument 'popt' will prompt user to enter number of experiments.
+# Input argument 'popt' will prompt user to enter number of experiments but will not execute 'zg'.
+# Input argument 'no_zg' will start the motor script but will not execute 'zg'.
 #
 
 
@@ -96,18 +97,23 @@ if (accel < 0) or (accel > max_accel):
 	if value == 1 or value < 0:
   		ct = XCMD("STOP")
   		EXIT()
-		
+
 #For multi-dimensional experiments get number of points in F1 dimension
 if dim == 0:
 	td = "1"
 else:
 	td = GETPAR("TD",1)
-    
+
+#Check for input arguments
+acquire = True
+if "no_zg" in sys.argv:
+	acquire = False
 if "popt" in sys.argv:
-    result = INPUT_DIALOG(title="NMR Shuttle", 
-                          header="Number of experiments for POPT:", 
-                          values=[td])
-    td = result[0]
+	acquire = False
+	result = INPUT_DIALOG(title="NMR Shuttle", 
+                        header="Number of experiments for POPT:", 
+                        values=[td])
+	td = result[0]
 
 
 #Calculate distance that motor needs to move to achieve the desired field strength.
@@ -226,19 +232,22 @@ print(command + arguments)
 proc = subprocess.Popen(command + arguments, cwd=pypath, shell=True, stdin=subprocess.PIPE)
 
 #Start acquisition
-zg = ZG(wait=NO_WAIT_TILL_DONE)
+if acquire:
+	print("Starting acquisition")
+	zg = ZG(wait=NO_WAIT_TILL_DONE)
 
+	#Send terminate to motor if acquisition fails/Abort acquisition if motor returns an error
+	while zg.getResult() != 0:
+		if proc.poll() > 0:
+			ct = XCMD("STOP")
+			ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
+			EXIT()
 
-#Send terminate to motor if acquisition fails/Abort acquisition if motor returns an error
-while zg.getResult() != 0:
-	if proc.poll() > 0:
-		ct = XCMD("STOP")
-		ERRMSG("Acquisition halted due to error in motor driver.", modal=1, title="NMR Shuttle Error")
-		EXIT()
+	if proc.poll() != 0:
+		proc.communicate(b'STOP')
+		ERRMSG("Acquistion stopped by Topspin.", title="NMR Shuttle", modal=1)
+	else:
+		ERRMSG("Acquistion completed successfully!", title="NMR Shuttle", modal=0)
 
-if proc.poll() != 0:
-	proc.communicate(b'STOP')
-	ERRMSG("Acquistion stopped by Topspin.", title="NMR Shuttle", modal=1)
 else:
-	ERRMSG("Acquistion completed successfully!", title="NMR Shuttle", modal=0)
-		
+	MSG("NMR Shuttle ready.\nAcquisition NOT started.", title="NMR Shuttle Error")
