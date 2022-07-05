@@ -1,6 +1,6 @@
 #
 # runNMRShuttle.py
-# Version 1.9, Jun 2022
+# Version 1.9.1, Jun 2022
 #
 # Andrew Hall 2022 (c)
 # a.m.r.hall@ed.ac.uk
@@ -9,8 +9,10 @@
 # Includes options for different NMR tubes and for arbitarily defined velocity/distance profiles.
 # Requires setup file containing motor parameters.
 #
-# Input argument 'popt' will prompt user to enter number of experiments but will not execute 'zg'.
-# Input argument 'no_zg' will start the motor script but will not execute 'zg'.
+# Input arguments:
+#	'popt'		- prompts user to enter number of experiments but will not execute 'zg'.
+#	'no_zg' 	- starts the motor script but will not execute 'zg'.
+#	'NO_TEMP'	- starts the motor script but not the temperature control.
 #
 
 
